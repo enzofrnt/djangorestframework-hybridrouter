@@ -16,9 +16,9 @@ class HybridRouter(DefaultRouter):
         
     def register_viewset(self, prefix, viewset, basename=None):
         super().register(prefix, viewset, basename)
-        
+    
     def register(self, prefix, viewset, basename=None):
-        raise NotImplementedError("Use register_viewset or register_view instead.")
+        raise NotImplementedError("The 'register' method is deprecated. Use 'register_viewset' instead.")
 
     def remove_api_view(self, name):
         if name in self._api_view_urls:
