@@ -65,9 +65,7 @@ jobs:
         pip install ../../
     - name: Run Coverage
       run: |
-        cd ./test/app/
-        coverage run manage.py test
-        coverage xml
+        cd ./test/app/ && coverage run manage.py test && coverage xml
     - name: Upload Coverage to GitHub
       uses: actions/upload-artifact@v2
       with:
