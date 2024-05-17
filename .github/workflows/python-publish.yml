@@ -1,24 +1,26 @@
-# This workflow will upload a Python Package using Twine when a release is created
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python#publishing-to-package-registries
-
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-
 name: Upload Python Package
 
-# Trigger the workflow on release or manual event
 on:
   release:
     types: [published]
   workflow_dispatch:
+    inputs:
+      job:
+        description: 'Choose which job to run'
+        required: true
+        default: 'deploy'
+        type: choice
+        options:
+          - deploy
+          - other_job_1
+          - other_job_2
 
 permissions:
   contents: read
 
 jobs:
   deploy:
+    if: github.event_name == 'release' || github.event.inputs.job == 'deploy'
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -41,3 +43,17 @@ jobs:
       with:
         user: __token__
         password: ${{ secrets.PYPI_API_TOKEN }}
+
+  other_job_1:
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.job == 'other_job_1'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Placeholder for other_job_1
+      run: echo "This is another job"
+
+  other_job_2:
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.job == 'other_job_2'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Placeholder for other_job_2
+      run: echo "This is yet another job"
