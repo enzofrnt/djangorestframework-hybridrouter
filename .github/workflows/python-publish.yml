@@ -68,5 +68,5 @@ jobs:
         pip install ../../
     - name: Run Tests
       run: |
-        cd ./test/app/Ò
+        cd ./test/app/
         python manage.py test
