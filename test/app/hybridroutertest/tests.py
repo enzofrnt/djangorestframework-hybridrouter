@@ -4,6 +4,7 @@ from rest_framework.test import APIClient
 from hybridrouter import HybridRouter
 from hybridroutertest.views import ServerConfigView, ClientModsView, ServerModsView, ServerConfigViewSet
 from django.urls import path, include
+from unittest.mock import patch
 
 urlpatterns = []
 
@@ -97,9 +98,27 @@ class HybridRouterTestCaseWithoutIntermediaryViews(CommonHybridRouterTests, Hybr
     def test_intermediary_view_not_present(self):
         with self.assertRaises(NoReverseMatch):
             reverse('mods')
-
-        # viewset_url = reverse('coucou-list')
-        # viewset_response = self.client.get(viewset_url)
-        # self.assertEqual(viewset_response.status_code, 200)
-        # attended_data = {'a': 'b'}
-        # self.assertEqual(viewset_response.data, attended_data)
+            
+class HybridRouterWithoutSpectacularWithIntermediaryViews(HybridRouterTestCaseWithIntermediaryViews):
+    @classmethod
+    @patch.dict('sys.modules', {'drf_spectacular.utils': None})
+    def setUpTestData(cls):
+        try:
+            import importlib
+            hybridrouter_module = importlib.import_module('hybridrouter')
+            importlib.reload(hybridrouter_module)
+            super().setUpTestData()
+        except Exception as e:
+            cls.fail(f"HybridRouter failed when drf_spectacular is not installed: {e}")
+    
+class HybridRouterWithoutSpectacularWithoutIntermediaryViews(HybridRouterTestCaseWithoutIntermediaryViews):
+    @classmethod
+    @patch.dict('sys.modules', {'drf_spectacular.utils': None})
+    def setUpTestData(cls):
+        try:
+            import importlib
+            hybridrouter_module = importlib.import_module('hybridrouter')
+            importlib.reload(hybridrouter_module)
+            super().setUpTestData()
+        except Exception as e:
+            cls.fail(f"HybridRouter failed when drf_spectacular is not installed: {e}")
