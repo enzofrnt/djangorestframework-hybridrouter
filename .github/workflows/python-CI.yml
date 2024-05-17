@@ -69,6 +69,7 @@ jobs:
         pip install ../../
     - name: Run Tests
       run: |
+        cd ./test/app/
         python manage.py test
 
   coverage:
