@@ -17,29 +17,9 @@ Including another URLconf
 from django.urls import path, include
 from django.urls import path
 from hybridrouter import HybridRouter
-from rest_framework.viewsets import ViewSet
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework.viewsets import ViewSet
 from drf_spectacular.views import SpectacularSwaggerView, SpectacularAPIView
-
 from rest_framework.routers import DefaultRouter
-
-class ServerConfigViewSet(ViewSet):
-    def list(self, request):
-        return Response({'a': 'b'})
-
-class ServerConfigView(APIView):
-    def get(self, request):
-        return Response({'config': 'server'})
-
-class ClientModsView(APIView):
-    def get(self, request):
-        return Response({'mods': 'client'})
-
-class ServerModsView(APIView):
-    def get(self, request):
-        return Response({'mods': 'server'})
+from hybridroutertest.views import ServerConfigView, ClientModsView, ServerModsView, ServerConfigViewSet
 
 router = HybridRouter(enable_intermediate_apiviews=True)
 router.register_view(r'^server-config', ServerConfigView, name='server-config')
@@ -48,9 +28,6 @@ router.register_view(r'^mods/server', ServerModsView, name='mods-server')
 router.register_view(r'^coucou/client', ClientModsView, name='coucou-client')
 router.register_view(r'^coucou/server', ServerModsView, name='coucou-server')
 router.register_viewset(r'coucou', ServerConfigViewSet, basename='coucou')
-
-
-defaut_router = DefaultRouter()
 
 
 urlpatterns = [
