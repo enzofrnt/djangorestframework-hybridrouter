@@ -2,7 +2,7 @@ name: Full CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, dev]
   release:
     types: [published]
   workflow_dispatch:
@@ -15,6 +15,7 @@ on:
         options:
           - publish-module
           - test-Django
+          - coverage
           - all
 
 permissions:
@@ -34,10 +35,10 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install build
-    - name: check for current folder
+    - name: Check current folder
       run: |
         ls
-    - name: build package
+    - name: Build package
       run: |
         python -m build
     - name: Publish build
@@ -68,6 +69,36 @@ jobs:
         pip install ../../
     - name: Run Tests
       run: |
-        cd ./test/app/
         python manage.py test
 
+  coverage:
+    if: github.event.inputs.job == 'coverage' || github.event.inputs.job == 'all' || github.event_name == 'release' || github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: '3.11'
+    - name: Install Dependencies
+      run: |
+        cd ./test/app/
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install coverage
+        pip install ../../
+    - name: Run Coverage
+      run: |
+        cd ./test/app/
+        coverage run manage.py test
+        coverage xml
+    - name: Upload Coverage to GitHub
+      uses: actions/upload-artifact@v2
+      with:
+        name: coverage-report
+        path: ./test/coverage.xml
+    - name: Report Coverage
+      uses: codecov/codecov-action@v2
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        files: ./test/app/coverage.xml

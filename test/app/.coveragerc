@@ -1,0 +1,9 @@
+[run]
+branch = True
+source = hybridrouter
+
+[report]
+omit =
+    */tests/*
+    */migrations/*
+    __init__.py
