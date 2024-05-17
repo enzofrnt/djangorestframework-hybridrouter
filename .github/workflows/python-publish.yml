@@ -1,6 +1,8 @@
-name: Upload Python Package
+name: Full CI
 
 on:
+  push:
+    branches: [main]
   release:
     types: [published]
   workflow_dispatch:
@@ -11,16 +13,16 @@ on:
         default: 'deploy'
         type: choice
         options:
-          - deploy
-          - other_job_1
-          - other_job_2
+          - publish-module
+          - test-Django
+          - all
 
 permissions:
   contents: read
 
 jobs:
-  deploy:
-    if: github.event_name == 'release' || github.event.inputs.job == 'deploy'
+  publish-module:
+    if: github.event_name == 'release' || github.event.inputs.job == 'publish-module' || github.event.inputs.job == 'all'
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -44,16 +46,26 @@ jobs:
         user: __token__
         password: ${{ secrets.PYPI_API_TOKEN }}
 
-  other_job_1:
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.job == 'other_job_1'
+  test-Django:
+    if: github.event.inputs.job == 'test-Django' || github.event.inputs.job == 'all' || github.event_name == 'release' || github.event_name == 'push'
     runs-on: ubuntu-latest
-    steps:
-    - name: Placeholder for other_job_1
-      run: echo "This is another job"
+    strategy:
+      max-parallel: 4
+      matrix:
+        python-version: [3.7, 3.8, 3.9]
 
-  other_job_2:
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.job == 'other_job_2'
-    runs-on: ubuntu-latest
     steps:
-    - name: Placeholder for other_job_2
-      run: echo "This is yet another job"
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install Dependencies
+      run: |
+        cd ./test/app/
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install ../../
+    - name: Run Tests
+      run: |
+        python manage.py test
