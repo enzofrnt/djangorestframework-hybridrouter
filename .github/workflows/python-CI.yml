@@ -23,6 +23,7 @@ permissions:
 
 jobs:
   test-Django:
+    if: github.event.inputs.job == 'test-Django' || github.event.inputs.job == 'all' || github.event_name == 'release' || github.event_name == 'push'
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -46,6 +47,7 @@ jobs:
         python manage.py test
 
   coverage:
+    if: github.event.inputs.job == 'coverage' || github.event.inputs.job == 'all' || github.event_name == 'release' || github.event_name == 'push'
     runs-on: ubuntu-latest
     needs: test-Django
     steps:
@@ -78,6 +80,7 @@ jobs:
         files: ./test/app/coverage.xml
 
   publish-module:
+    if: github.event_name == 'release' || github.event.inputs.job == 'publish-module' || github.event.inputs.job == 'all'
     runs-on: ubuntu-latest
     needs: [test-Django, coverage]
     steps:
