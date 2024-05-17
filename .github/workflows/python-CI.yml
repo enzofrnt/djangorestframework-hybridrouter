@@ -65,17 +65,17 @@ jobs:
         pip install ../../
     - name: Run Coverage
       run: |
-        cd ./test/app/ && coverage run manage.py test && coverage xml
+        cd ./test/app/ && coverage run manage.py test && coverage html && coverage xml
     - name: Upload Coverage to GitHub
       uses: actions/upload-artifact@v2
       with:
         name: coverage-report
-        path: ./test/app/coverage.xml
+        path: ./test/app/htmlcov
     - name: Report Coverage
       uses: codecov/codecov-action@v2
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
-        files: ./test/app/coverage.xml
+        files: ./test/app/htmlcov/coverage.xml
 
   publish-module:
     if: github.event_name == 'release' || github.event.inputs.job == 'publish-module' || github.event.inputs.job == 'all'
