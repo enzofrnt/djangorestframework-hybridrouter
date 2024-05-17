@@ -72,7 +72,7 @@ jobs:
         name: coverage-report
         path: ./test/app/htmlcov
     - name: Report Coverage
-      uses: codecov/codecov-action@v2
+      uses: codecov/codecov-action@v4.0.1
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         files: ./test/app/htmlcov/coverage.xml
