@@ -1,3 +1,5 @@
+[![codecov](https://codecov.io/github/enzofrnt/djangorestframework-hybridrouter/branch/main/graph/badge.svg?token=4DAZ8HFPOZ)](https://codecov.io/github/enzofrnt/djangorestframework-hybridrouter)
+
 # djangorestframework-hybridrouter
 A router for ViewSets and Views! And with a better browsable API!
 
