@@ -1,18 +1,21 @@
+import unittest
+import sys
+import importlib
 import os
+
 from django import setup
 from django.conf import settings
-if not settings.configured:
+
+if settings.configured is False:
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'app.settings')
     setup()
-else:
-    setup()
+
+from unittest.mock import patch
 from hybridrouter import HybridRouter
 from django.test import TestCase, override_settings
-from django.urls import reverse, NoReverseMatch
 from rest_framework.test import APIClient
 from hybridroutertest.views import ServerConfigView, ClientModsView, ServerModsView, ServerConfigViewSet
-from django.urls import path, include
-from unittest.mock import patch
+from django.urls import path, include, reverse, NoReverseMatch
 
 urlpatterns = []
 
@@ -69,7 +72,7 @@ class CommonHybridRouterTests:
         with self.assertRaises(NotImplementedError):
             self.router.register('prefix', 'viewset', 'basename')
         
-@override_settings(ROOT_URLCONF='hybridroutertest.tests.testo')
+@override_settings(ROOT_URLCONF='hybridroutertest.tests')
 class HybridRouterTestCaseWithIntermediaryViews(CommonHybridRouterTests, HybridRouterTests):
     
     def setUp(self, router=None):
@@ -114,7 +117,7 @@ class HybridRouterTestCaseWithIntermediaryViews(CommonHybridRouterTests, HybridR
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data, attended_data)
 
-@override_settings(ROOT_URLCONF='hybridroutertest.tests.testo')
+@override_settings(ROOT_URLCONF='hybridroutertest.tests')
 class HybridRouterTestCaseWithoutIntermediaryViews(CommonHybridRouterTests, HybridRouterTests):
     
     def setUp(self, router=None):
@@ -153,3 +156,32 @@ class HybridRouterTestCaseWithoutIntermediaryViews(CommonHybridRouterTests, Hybr
 
 
 
+
+
+class TestHybridRouterWithoutSpectacular(unittest.TestCase):
+    
+    def setUp(self):
+        super().setUp()
+        modules_to_remove = [
+            'hybridrouter', 'hybridrouter.hybridrouter', 'drf_spectacular', 'drf_spectacular.utils'
+        ]
+        for module in modules_to_remove:
+            if module in sys.modules:
+                del sys.modules[module]
+
+    @patch.dict('sys.modules', {'drf_spectacular': None})
+    def test_import_error(self):
+        from hybridrouter import hybridrouter
+        importlib.reload(hybridrouter)
+        self.assertTrue(hasattr(hybridrouter, 'DRF_SPECTACULAR'))
+        self.assertFalse(getattr(hybridrouter, 'DRF_SPECTACULAR'))
+
+        
+class HybridRouterTestCaseWithIntermediaryViewsWithoutSpectacular(TestHybridRouterWithoutSpectacular, HybridRouterTestCaseWithIntermediaryViews):
+    def setUp(cls):
+        super().setUp()
+    
+class   HybridRouterTestCaseWithoutIntermediaryViewsWithoutSpectacular(TestHybridRouterWithoutSpectacular, HybridRouterTestCaseWithoutIntermediaryViews):
+    def setUp(cls):
+        super().setUp()
+            

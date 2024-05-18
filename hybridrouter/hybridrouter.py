@@ -10,7 +10,7 @@ try:
     DRF_SPECTACULAR = True
 except ImportError:
     DRF_SPECTACULAR = False
-
+    
 def conditionally_extend_schema(exclude=True):
     def decorator(view_func):
         if DRF_SPECTACULAR:
