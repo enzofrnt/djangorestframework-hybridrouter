@@ -29,7 +29,7 @@ SERVER_CONFIG_PATH = '/shared/ServerConfig.toml'
 
 SERVER_MODS_PATH = '/shared/Resources/'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition

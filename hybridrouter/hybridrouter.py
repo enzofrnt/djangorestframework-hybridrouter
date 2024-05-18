@@ -15,7 +15,6 @@ def conditionally_extend_schema(exclude=True):
     def decorator(view_func):
         if DRF_SPECTACULAR:
             return extend_schema(exclude=exclude)(view_func)
-        return view_func
     return decorator
 
 class HybridRouter(DefaultRouter):    
@@ -33,10 +32,6 @@ class HybridRouter(DefaultRouter):
     
     def register(self, prefix, viewset, basename=None):
         raise NotImplementedError("The 'register' method is deprecated. Use 'register_viewset' instead.")
-
-    def remove_api_view(self, name):
-        if name in self._api_view_urls:
-            del self._api_view_urls[name]
 
     @property
     def api_view_urls(self):
