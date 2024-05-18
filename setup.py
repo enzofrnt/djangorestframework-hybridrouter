@@ -10,7 +10,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name='djangorestframework-hybridrouter',
-    version='0.1.3',
+    version='0.1.4',
     packages=[
         'hybridrouter',
     ],
