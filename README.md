@@ -58,23 +58,29 @@ urlpatterns = [
 
 HybridRouter
 
-register_view(url, view, name)
+- `register_view(url, view, name)`
 
-Registers an APIView with the specified URL pattern.
+    Registers an APIView with the specified URL pattern.
 
-	•	url: URL pattern for the view.
-	•	view: The APIView class.
-	•	name: The name of the view.
+        •	url: URL pattern for the view.
+        •	view: The APIView class.
+        •	name: The name of the view.
 
-register_viewset(prefix, viewset, basename=None)
+- `register_viewset(prefix, viewset, basename=None)`
 
-Registers a ViewSet with the specified prefix.
+    Registers a ViewSet with the specified prefix.
 
-	•	prefix: URL prefix for the viewset.
-	•	viewset: The ViewSet class.
-	•	basename: The base name for the viewset (optional).
+        •	prefix: URL prefix for the viewset.
+        •	viewset: The ViewSet class.
+        •	basename: The base name for the viewset (optional).
 
-*Note: This method is a wrapper around `DefaultRouter.register()`, which is now deprecated in this module.*
+- `register(prefix, view, name)`
+
+    Registers an APIView or ViewSet with the specified prefix.
+
+        •	prefix: URL prefix for the view.
+        •	view: The APIView or ViewSet class.
+        •	name: The name of the view.
 
 ## Advanced Features
 
