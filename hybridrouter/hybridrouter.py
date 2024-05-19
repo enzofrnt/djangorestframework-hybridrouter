@@ -2,6 +2,7 @@ from django.urls import re_path
 from rest_framework.reverse import reverse
 from rest_framework.routers import DefaultRouter
 from rest_framework.views import APIView
+from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
 from urllib.parse import urlsplit, urlunsplit
 
@@ -30,8 +31,13 @@ class HybridRouter(DefaultRouter):
     def register_viewset(self, prefix, viewset, basename=None):
         super().register(prefix, viewset, basename)
     
-    def register(self, prefix, viewset, basename=None):
-        raise NotImplementedError("The 'register' method is deprecated. Use 'register_viewset' instead.")
+    def register(self, prefix, view_class, basename=None):
+        if issubclass(view_class, ViewSet):
+            self.register_viewset(prefix, view_class, basename)
+        elif issubclass(view_class, APIView):
+            self.register_view(prefix, view_class, basename)
+        else:
+            raise ValueError("The class must be a subclass of APIView or ViewSet")
 
     @property
     def api_view_urls(self):
