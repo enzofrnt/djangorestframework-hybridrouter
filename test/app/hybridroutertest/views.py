@@ -1,6 +1,7 @@
 from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
 from rest_framework.viewsets import ViewSet
 
 class ServerConfigViewSet(ViewSet):
@@ -16,5 +17,14 @@ class ClientModsView(APIView):
         return Response({'mods': 'client'})
 
 class ServerModsView(APIView):
+    def get(self, request):
+        return Response({'mods': 'server'})
+    
+    
+class Auto1(APIView):
+    def get(self, request):
+        return Response({'mods': 'server'})
+    
+class Auto2(APIView):
     def get(self, request):
         return Response({'mods': 'server'})

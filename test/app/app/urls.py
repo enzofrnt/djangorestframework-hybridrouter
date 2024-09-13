@@ -19,15 +19,25 @@ from django.urls import path
 from hybridrouter import HybridRouter
 from drf_spectacular.views import SpectacularSwaggerView, SpectacularAPIView
 from rest_framework.routers import DefaultRouter
-from hybridroutertest.views import ServerConfigView, ClientModsView, ServerModsView, ServerConfigViewSet
+from hybridroutertest.views import ServerConfigView, ClientModsView, ServerModsView, ServerConfigViewSet, Auto1, Auto2
 
-router = HybridRouter(enable_intermediate_apiviews=True)
-router.register_view(r'^server-config', ServerConfigView, name='server-config')
-router.register_view(r'^mods/client', ClientModsView, name='mods-client')
-router.register_view(r'^mods/server', ServerModsView, name='mods-server')
-router.register_view(r'^coucou/client', ClientModsView, name='coucou-client')
-router.register_view(r'^coucou/server', ServerModsView, name='coucou-server')
-router.register_viewset(r'coucou', ServerConfigViewSet, basename='coucou')
+router = HybridRouter()
+router.register_view('server-config/', ServerConfigView.as_view(), name='server-config')
+router.register_view('coucou/client/', ClientModsView.as_view(), name='coucou-client')
+router.register_view('coucou/server/', ServerModsView.as_view(), name='coucou-server')
+router.register(r'coucou', ServerConfigViewSet, basename='coucou')
+
+# Nouveau cas
+router.register_view('auto/1',Auto1.as_view(), name='auto1')
+router.register_view('auto/2',Auto2.as_view(), name='auto2')
+
+# Créer un routeur imbriqué pour 'mods/'
+mods_router = HybridRouter()
+mods_router.register_view('client/', ClientModsView.as_view(), name='mods-client')
+mods_router.register_view('server/', ServerModsView.as_view(), name='mods-server')
+
+# Enregistrer le routeur imbriqué sous le préfixe 'mods'
+router.register_nested_router('mods', mods_router)
 
 
 urlpatterns = [
