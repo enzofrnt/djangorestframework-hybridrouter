@@ -19,22 +19,37 @@ from django.urls import path
 from hybridrouter import HybridRouter
 from drf_spectacular.views import SpectacularSwaggerView, SpectacularAPIView
 from rest_framework.routers import DefaultRouter
-from hybridroutertest.views import ServerConfigView, ClientModsView, ServerModsView, ServerConfigViewSet, Auto1, Auto2
+from hybridroutertest.views import ServerConfigView, ClientModsView, ServerModsView, ServerConfigViewSet, Auto, Auto1, Auto2, Auto3
 
 router = HybridRouter()
-router.register_view('server-config/', ServerConfigView.as_view(), name='server-config')
-router.register_view('coucou/client/', ClientModsView.as_view(), name='coucou-client')
-router.register_view('coucou/server/', ServerModsView.as_view(), name='coucou-server')
-router.register(r'coucou', ServerConfigViewSet, basename='coucou')
+router.register_view('server-config/', ServerConfigView.as_view(), basename='server-config')
+router.register_view('coucou/client/', ClientModsView.as_view(), basename='coucou-client')
+router.register_view('coucou/server/', ServerModsView.as_view(), basename='coucou-server')
+router.register('coucou/', ServerConfigViewSet, basename='coucou')
 
 # Nouveau cas
-router.register_view('auto/1',Auto1.as_view(), name='auto1')
-router.register_view('auto/2',Auto2.as_view(), name='auto2')
+router.register_view('auto/1/',Auto1.as_view(), basename='auto1')
+router.register_view('auto/2/',Auto2.as_view(), basename='auto2')
+router.register_view('auto/3/',Auto3.as_view(), basename='auto3')
+
+router.register('auto/3/coucou/',ServerConfigViewSet, basename='auto3coucou')
+router.register('auto/3/coucou/1/',ServerConfigViewSet, basename='auto3coucou')
+router.register('auto/3/coucou/2/',ServerConfigViewSet, basename='auto3coucou')
+
+router.register('auto/3/caca/1/',ServerConfigViewSet, basename='auto3caca')
+router.register('auto/3/caca/2/',ServerConfigViewSet, basename='auto3caca')
+
+
+
+
+router.register_view('autotkt/',Auto.as_view(), basename='autotkt')
+router.register_view('autotkt/1/',Auto1.as_view(), basename='autotkt1')
+router.register_view('autotkt/2/',Auto2.as_view(), basename='autotkt2')
 
 # Créer un routeur imbriqué pour 'mods/'
 mods_router = HybridRouter()
-mods_router.register_view('client/', ClientModsView.as_view(), name='mods-client')
-mods_router.register_view('server/', ServerModsView.as_view(), name='mods-server')
+mods_router.register_view('client/', ClientModsView.as_view(), basename='mods-client')
+mods_router.register_view('server/', ServerModsView.as_view(), basename='mods-server')
 
 # Enregistrer le routeur imbriqué sous le préfixe 'mods'
 router.register_nested_router('mods', mods_router)

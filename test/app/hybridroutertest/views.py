@@ -21,10 +21,17 @@ class ServerModsView(APIView):
         return Response({'mods': 'server'})
     
     
+class Auto(APIView):
+    def get(self, request):
+        return Response({'mods': 'server'})
 class Auto1(APIView):
     def get(self, request):
         return Response({'mods': 'server'})
     
 class Auto2(APIView):
+    def get(self, request):
+        return Response({'mods': 'server'})
+
+class Auto3(APIView):
     def get(self, request):
         return Response({'mods': 'server'})
