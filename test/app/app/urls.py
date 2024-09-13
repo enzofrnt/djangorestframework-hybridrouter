@@ -40,8 +40,6 @@ router.register('auto/3/caca/1/',ServerConfigViewSet, basename='auto3caca')
 router.register('auto/3/caca/2/',ServerConfigViewSet, basename='auto3caca')
 
 
-
-
 router.register_view('autotkt/',Auto.as_view(), basename='autotkt')
 router.register_view('autotkt/1/',Auto1.as_view(), basename='autotkt1')
 router.register_view('autotkt/2/',Auto2.as_view(), basename='autotkt2')

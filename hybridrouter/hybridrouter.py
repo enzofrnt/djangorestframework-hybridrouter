@@ -16,12 +16,23 @@ class TreeNode:
         self.is_viewset = False
         self.is_nested_router = False
         self.router = None  # Pour les routeurs imbriqués manuellement
+        self.url_name = None  # Nom unique pour la résolution des URLs
 
 
 class HybridRouter(DefaultRouter):
     def __init__(self):
         super().__init__()
         self.root_node = TreeNode()
+        self._unique_id_counter = 0  # Compteur pour générer des identifiants uniques
+
+    def _generate_unique_url_name(self, basename, path_parts):
+        # Générer un identifiant unique
+        self._unique_id_counter += 1
+        unique_id = self._unique_id_counter
+        # Combiner le basename, le chemin et l'identifiant unique
+        path_str = '_'.join(path_parts)
+        url_name = f"{basename}_{path_str}_{unique_id}"
+        return url_name
 
     def _add_route(self, path_parts, view, basename=None, is_viewset=False):
         node = self.root_node
@@ -29,9 +40,13 @@ class HybridRouter(DefaultRouter):
             if part not in node.children:
                 node.children[part] = TreeNode(name=part)
             node = node.children[part]
+
+        # Générer un nom d'URL unique pour ce nœud
+        url_name = self._generate_unique_url_name(basename, path_parts)
         node.view = view
         node.basename = basename
         node.is_viewset = is_viewset
+        node.url_name = url_name
 
     def register(self, prefix, viewset, basename=None):
         """
@@ -55,8 +70,8 @@ class HybridRouter(DefaultRouter):
         """
         Enregistre un routeur imbriqué sous un certain préfixe.
         """
-        path_parts = prefix.strip('/').split('/')
         node = self.root_node
+        path_parts = prefix.strip('/').split('/')
         for part in path_parts:
             if part not in node.children:
                 node.children[part] = TreeNode(name=part)
@@ -77,11 +92,11 @@ class HybridRouter(DefaultRouter):
             if node.is_viewset:
                 # Utiliser DefaultRouter pour les ViewSets
                 router = DefaultRouter()
-                router.register('', node.view, basename=node.basename)
+                router.register('', node.view, basename=node.url_name)
                 urls.append(path(f'{prefix}', include(router.urls)))
             else:
-                # Ajouter la vue basique
-                urls.append(path(f'{prefix}', node.view, name=node.basename))
+                # Ajouter la vue basique avec le nom unique
+                urls.append(path(f'{prefix}', node.view, name=node.url_name))
         if node.children:
             # Créer une API Root intermédiaire si le nœud a des enfants
             api_root_view = self._get_api_root_view(node, prefix)
@@ -97,12 +112,10 @@ class HybridRouter(DefaultRouter):
 
         for child_name, child_node in node.children.items():
             has_children = True
-            if child_node.is_viewset:
-                url_name = f'{child_node.basename}-list'
+            if child_node.is_viewset or child_node.view:
+                url_name = child_node.url_name
             elif child_node.is_nested_router:
                 url_name = f'{prefix}{child_name}-api-root'
-            elif child_node.view:
-                url_name = child_node.basename
             else:
                 url_name = f'{prefix}{child_name}-api-root'
             api_root_dict[child_name] = url_name
