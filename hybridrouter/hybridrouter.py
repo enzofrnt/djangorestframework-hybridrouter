@@ -1,4 +1,5 @@
 import re
+import logging  
 from rest_framework.routers import DefaultRouter
 from django.urls import path, include
 from collections import OrderedDict
@@ -8,6 +9,53 @@ from rest_framework.views import APIView
 from django.urls.exceptions import NoReverseMatch
 from rest_framework.viewsets import ViewSetMixin
 
+# Liste au niveau du module pour collecter les instances de HybridRouter
+ROUTERS = []
+logger = logging.getLogger('hybridrouter')
+
+
+# Définir la classe ColorFormatter avec la prise en charge des dates
+class ColorFormatter(logging.Formatter):
+    COLOR_MAP = {
+        'ERROR': '\033[31m',    # Rouge
+        'WARNING': '\033[33m',  # Jaune/Orange
+        'INFO': '\033[32m',     # Vert
+    }
+    RESET = '\033[0m'
+
+    def __init__(self, fmt=None, datefmt=None):
+        super().__init__(fmt, datefmt)
+
+    def format(self, record):
+        # Formater la date selon le format spécifié
+        record.asctime = self.formatTime(record, self.datefmt)
+        date_str = f"[{record.asctime}] "
+
+        # Construire le reste du message
+        color = self.COLOR_MAP.get(record.levelname, self.RESET)
+        message = f"{record.levelname}: {record.getMessage()}"
+        colored_message = f"{color}{message}{self.RESET}"
+
+        # Combiner la date non colorée avec le message coloré
+        return f"{date_str}{colored_message}"
+
+# Récupérer le logger 'hybridrouter'
+logger = logging.getLogger('hybridrouter')
+logger.setLevel(logging.DEBUG)  # Définir le niveau de log souhaité
+
+# Définir le format avec la date
+log_format = '[%(asctime)s] %(levelname)s: %(message)s'
+date_format = '%d/%b/%Y %H:%M:%S'
+
+# Initialiser le ColorFormatter avec le format et le format de date
+color_formatter = ColorFormatter(fmt=log_format, datefmt=date_format)
+
+# Créer un handler pour la sortie console et appliquer le formatter
+handler = logging.StreamHandler()
+handler.setFormatter(color_formatter)
+
+# Ajouter le handler au logger
+logger.addHandler(handler)
 
 class TreeNode:
     def __init__(self, name=None):
@@ -20,30 +68,55 @@ class TreeNode:
         self.router = None  # Pour les routeurs imbriqués manuellement
         self.url_name = None  # Nom unique pour la résolution des URLs
 
-
 class HybridRouter(DefaultRouter):
-    include_intermediate_views = True  # Nouvel attribut pour contrôler les vues intermédiaires
+    include_intermediate_views = True  # Contrôle les vues intermédiaires
 
     def __init__(self):
         super().__init__()
         self.root_node = TreeNode()
-        self._unique_id_counter = 0  # Compteur pour générer des identifiants uniques
+        self.used_url_names = set()  # Ensemble des noms d'URL utilisés
+        # self.check_messages = []  # Liste pour stocker les messages de vérification
+        ROUTERS.append(self)  # Ajouter l'instance à la liste des routeurs
 
     def _sanitize_path_part(self, part):
         # Supprime les paramètres d'URL tels que <int:id> ou <str:name>
         return re.sub(r'<[^>]*>', '', part)
 
-    def _generate_unique_url_name(self, basename, path_parts):
+    def _generate_url_name(self, basename, path_parts):
         # Nettoyer les parties du chemin pour supprimer les paramètres d'URL
         sanitized_parts = [self._sanitize_path_part(part) for part in path_parts]
         # Supprimer les chaînes vides résultant du nettoyage
         sanitized_parts = [part for part in sanitized_parts if part]
-        # Générer un identifiant unique
-        self._unique_id_counter += 1
-        unique_id = self._unique_id_counter
-        # Combiner le basename, les parties du chemin nettoyées et l'identifiant unique
-        path_str = '_'.join(sanitized_parts)
-        url_name = f"{basename}_{path_str}_{unique_id}"
+        # Utiliser uniquement le basename pour le nom d'URL
+        original_url_name = basename
+        url_name = original_url_name
+
+        # Vérifier si le nom d'URL est déjà utilisé
+        counter = 1
+        while url_name in self.used_url_names:
+            if counter == 1:
+                # Ajouter un message de vérification au lieu d'un avertissement
+                # self.check_messages.append(
+                #     checks.Warning(
+                #         f"Le nom d'URL '{original_url_name}' est déjà utilisé. Génération d'un nom unique.",
+                #         hint="Changez le basename ou le chemin pour éviter les conflits.",
+                #         obj=original_url_name,
+                #         id='hybridrouter.W001',
+                #     )
+                # )
+                # warnings.warn(
+                #     f"Le nom d'URL '{original_url_name}' est déjà utilisé. Génération d'un nom unique."
+                # )
+                logger.warning(
+                    f"Le nom d'URL '{original_url_name}' est déjà utilisé. Génération d'un nom unique."
+                )
+            # Générer un nom d'URL unique en ajoutant un suffixe numérique
+            url_name = f"{original_url_name}_{counter}"
+            counter += 1
+
+        # Ajouter le nom d'URL à l'ensemble des noms utilisés
+        self.used_url_names.add(url_name)
+
         return url_name
 
     def _add_route(self, path_parts, view, basename=None):
@@ -59,8 +132,9 @@ class HybridRouter(DefaultRouter):
                 node.children[part] = TreeNode(name=part)
             node = node.children[part]
 
-        # Générer un nom d'URL unique pour ce nœud
-        url_name = self._generate_unique_url_name(basename, path_parts)
+        # Générer un nom d'URL unique
+        url_name = self._generate_url_name(basename, path_parts)
+
         node.view = view
         node.basename = basename
         node.is_viewset = is_viewset
@@ -96,7 +170,12 @@ class HybridRouter(DefaultRouter):
     def _build_urls(self, node, prefix, urls):
         if node.is_nested_router:
             # Inclure le routeur imbriqué manuellement
-            urls.append(path(f'{prefix}', include((node.router.urls, node.basename), namespace=node.basename)))
+            urls.append(
+                path(
+                    f'{prefix}',
+                    include((node.router.urls, node.basename), namespace=node.basename)
+                )
+            )
         elif node.view:
             if node.is_viewset:
                 # Utiliser DefaultRouter pour les ViewSets
@@ -108,7 +187,7 @@ class HybridRouter(DefaultRouter):
                 # Ajouter la vue basique avec le nom unique
                 urls.append(path(f'{prefix}', node.view.as_view(), name=node.url_name))
         if node.children:
-            # Si on est pas à la racine et que les vues intermédiaires sont activées
+            # Si on n'est pas à la racine et que les vues intermédiaires sont activées
             if prefix and self.include_intermediate_views:
                 api_root_view = self._get_api_root_view(node, prefix)
                 if api_root_view:
