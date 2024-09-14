@@ -22,11 +22,12 @@ class TreeNode:
 
 
 class HybridRouter(DefaultRouter):
-    def __init__(self, create_intermediate_views=True):
+    include_intermediate_views = True  # Nouvel attribut pour contrôler les vues intermédiaires
+
+    def __init__(self):
         super().__init__()
         self.root_node = TreeNode()
         self._unique_id_counter = 0  # Compteur pour générer des identifiants uniques
-        self.create_intermediate_views = create_intermediate_views  # Nouvel argument
 
     def _sanitize_path_part(self, part):
         # Supprime les paramètres d'URL tels que <int:id> ou <str:name>
@@ -100,14 +101,15 @@ class HybridRouter(DefaultRouter):
             if node.is_viewset:
                 # Utiliser DefaultRouter pour les ViewSets
                 router = DefaultRouter()
+                router.include_root_view = False  # Ne pas inclure la vue racine pour les routeurs imbriqués
                 router.register('', node.view, basename=node.url_name)
                 urls.append(path(f'{prefix}', include(router.urls)))
             else:
                 # Ajouter la vue basique avec le nom unique
                 urls.append(path(f'{prefix}', node.view.as_view(), name=node.url_name))
         if node.children:
-            if self.create_intermediate_views:
-                # Créer une API Root intermédiaire si le nœud a des enfants
+            # Si on est pas à la racine et que les vues intermédiaires sont activées
+            if prefix and self.include_intermediate_views:
                 api_root_view = self._get_api_root_view(node, prefix)
                 if api_root_view:
                     urls.append(path(f'{prefix}', api_root_view))
@@ -134,6 +136,7 @@ class HybridRouter(DefaultRouter):
 
         class APIRoot(APIView):
             _ignore_model_permissions = True
+            schema = None  # Exclure du schéma si nécessaire
 
             def get(self, request, *args, **kwargs):
                 ret = OrderedDict()
@@ -152,9 +155,17 @@ class HybridRouter(DefaultRouter):
         return APIRoot.as_view()
 
     def get_api_root_view(self, api_urls=None):
-        # Surcharge pour la racine principale
+        """
+        Surcharge la vue API Root principale pour respecter la logique de
+        `include_root_view` du DefaultRouter.
+        """
+        if not self.include_root_view:
+            return None
         return self._get_api_root_view(self.root_node, '')
 
     @property
     def urls(self):
-        return self.get_urls()
+        urls = self.get_urls()
+        if self.include_root_view:
+            urls.append(path('', self.get_api_root_view(), name=self.root_view_name))
+        return urls

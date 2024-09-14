@@ -22,6 +22,8 @@ from hybridroutertest.views import ServerConfigView, ClientModsView, ServerModsV
 
 
 router = HybridRouter()
+# router.include_root_view = True
+router.include_intermediate_views = False
 router.register('server-config/', ServerConfigView, basename='server-config')
 router.register('coucou/client/', ClientModsView, basename='coucou-client')
 router.register('coucou/server/', ServerModsView, basename='coucou-server')
