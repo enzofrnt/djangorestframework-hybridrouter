@@ -22,10 +22,11 @@ class TreeNode:
 
 
 class HybridRouter(DefaultRouter):
-    def __init__(self):
+    def __init__(self, create_intermediate_views=True):
         super().__init__()
         self.root_node = TreeNode()
         self._unique_id_counter = 0  # Compteur pour générer des identifiants uniques
+        self.create_intermediate_views = create_intermediate_views  # Nouvel argument
 
     def _sanitize_path_part(self, part):
         # Supprime les paramètres d'URL tels que <int:id> ou <str:name>
@@ -105,10 +106,11 @@ class HybridRouter(DefaultRouter):
                 # Ajouter la vue basique avec le nom unique
                 urls.append(path(f'{prefix}', node.view.as_view(), name=node.url_name))
         if node.children:
-            # Créer une API Root intermédiaire si le nœud a des enfants
-            api_root_view = self._get_api_root_view(node, prefix)
-            if api_root_view:
-                urls.append(path(f'{prefix}', api_root_view))
+            if self.create_intermediate_views:
+                # Créer une API Root intermédiaire si le nœud a des enfants
+                api_root_view = self._get_api_root_view(node, prefix)
+                if api_root_view:
+                    urls.append(path(f'{prefix}', api_root_view))
             for child in node.children.values():
                 child_prefix = f'{prefix}{child.name}/'
                 self._build_urls(child, child_prefix, urls)
