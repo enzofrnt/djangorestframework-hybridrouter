@@ -1,3 +1,4 @@
+import re
 from rest_framework.routers import DefaultRouter
 from django.urls import path, include
 from collections import OrderedDict
@@ -5,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.views import APIView
 from django.urls.exceptions import NoReverseMatch
+from rest_framework.viewsets import ViewSetMixin
 
 
 class TreeNode:
@@ -25,16 +27,30 @@ class HybridRouter(DefaultRouter):
         self.root_node = TreeNode()
         self._unique_id_counter = 0  # Compteur pour générer des identifiants uniques
 
+    def _sanitize_path_part(self, part):
+        # Supprime les paramètres d'URL tels que <int:id> ou <str:name>
+        return re.sub(r'<[^>]*>', '', part)
+
     def _generate_unique_url_name(self, basename, path_parts):
+        # Nettoyer les parties du chemin pour supprimer les paramètres d'URL
+        sanitized_parts = [self._sanitize_path_part(part) for part in path_parts]
+        # Supprimer les chaînes vides résultant du nettoyage
+        sanitized_parts = [part for part in sanitized_parts if part]
         # Générer un identifiant unique
         self._unique_id_counter += 1
         unique_id = self._unique_id_counter
-        # Combiner le basename, le chemin et l'identifiant unique
-        path_str = '_'.join(path_parts)
+        # Combiner le basename, les parties du chemin nettoyées et l'identifiant unique
+        path_str = '_'.join(sanitized_parts)
         url_name = f"{basename}_{path_str}_{unique_id}"
         return url_name
 
-    def _add_route(self, path_parts, view, basename=None, is_viewset=False):
+    def _add_route(self, path_parts, view, basename=None):
+        # Déterminer si c'est un ViewSet ou une vue classique
+        try:
+            is_viewset = issubclass(view, ViewSetMixin)
+        except TypeError:
+            is_viewset = False
+
         node = self.root_node
         for part in path_parts:
             if part not in node.children:
@@ -48,23 +64,14 @@ class HybridRouter(DefaultRouter):
         node.is_viewset = is_viewset
         node.url_name = url_name
 
-    def register(self, prefix, viewset, basename=None):
+    def register(self, prefix, view, basename=None):
         """
-        Enregistre un ViewSet avec le préfixe spécifié.
+        Enregistre un ViewSet ou une vue avec le préfixe spécifié.
         """
         if basename is None:
-            basename = self.get_default_basename(viewset)
+            basename = self.get_default_basename(view)
         path_parts = prefix.strip('/').split('/')
-        self._add_route(path_parts, viewset, basename=basename, is_viewset=True)
-
-    def register_view(self, route, view, basename=None):
-        """
-        Enregistre une vue basique.
-        """
-        if not basename:
-            basename = view.__name__.lower()
-        path_parts = route.strip('/').split('/')
-        self._add_route(path_parts, view, basename=basename, is_viewset=False)
+        self._add_route(path_parts, view, basename=basename)
 
     def register_nested_router(self, prefix, router):
         """
@@ -96,7 +103,7 @@ class HybridRouter(DefaultRouter):
                 urls.append(path(f'{prefix}', include(router.urls)))
             else:
                 # Ajouter la vue basique avec le nom unique
-                urls.append(path(f'{prefix}', node.view, name=node.url_name))
+                urls.append(path(f'{prefix}', node.view.as_view(), name=node.url_name))
         if node.children:
             # Créer une API Root intermédiaire si le nœud a des enfants
             api_root_view = self._get_api_root_view(node, prefix)
