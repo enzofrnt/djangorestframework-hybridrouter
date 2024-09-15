@@ -1,5 +1,4 @@
 import re
-import logging  
 from rest_framework.routers import DefaultRouter
 from django.urls import path, include
 from collections import OrderedDict
@@ -8,54 +7,7 @@ from rest_framework.reverse import reverse
 from rest_framework.views import APIView
 from django.urls.exceptions import NoReverseMatch
 from rest_framework.viewsets import ViewSetMixin
-
-# Liste au niveau du module pour collecter les instances de HybridRouter
-ROUTERS = []
-logger = logging.getLogger('hybridrouter')
-
-
-# Définir la classe ColorFormatter avec la prise en charge des dates
-class ColorFormatter(logging.Formatter):
-    COLOR_MAP = {
-        'ERROR': '\033[31m',    # Rouge
-        'WARNING': '\033[33m',  # Jaune/Orange
-        'INFO': '\033[32m',     # Vert
-    }
-    RESET = '\033[0m'
-
-    def __init__(self, fmt=None, datefmt=None):
-        super().__init__(fmt, datefmt)
-
-    def format(self, record):
-        # Formater la date selon le format spécifié
-        record.asctime = self.formatTime(record, self.datefmt)
-        date_str = f"[{record.asctime}] "
-
-        # Construire le reste du message
-        color = self.COLOR_MAP.get(record.levelname, self.RESET)
-        message = f"{record.levelname}: {record.getMessage()}"
-        colored_message = f"{color}{message}{self.RESET}"
-
-        # Combiner la date non colorée avec le message coloré
-        return f"{date_str}{colored_message}"
-
-# Récupérer le logger 'hybridrouter'
-logger = logging.getLogger('hybridrouter')
-logger.setLevel(logging.DEBUG)  # Définir le niveau de log souhaité
-
-# Définir le format avec la date
-log_format = '[%(asctime)s] %(levelname)s: %(message)s'
-date_format = '%d/%b/%Y %H:%M:%S'
-
-# Initialiser le ColorFormatter avec le format et le format de date
-color_formatter = ColorFormatter(fmt=log_format, datefmt=date_format)
-
-# Créer un handler pour la sortie console et appliquer le formatter
-handler = logging.StreamHandler()
-handler.setFormatter(color_formatter)
-
-# Ajouter le handler au logger
-logger.addHandler(handler)
+from .utils import logger
 
 class TreeNode:
     def __init__(self, name=None):
@@ -75,8 +27,6 @@ class HybridRouter(DefaultRouter):
         super().__init__()
         self.root_node = TreeNode()
         self.used_url_names = set()  # Ensemble des noms d'URL utilisés
-        # self.check_messages = []  # Liste pour stocker les messages de vérification
-        ROUTERS.append(self)  # Ajouter l'instance à la liste des routeurs
 
     def _sanitize_path_part(self, part):
         # Supprime les paramètres d'URL tels que <int:id> ou <str:name>
@@ -95,18 +45,6 @@ class HybridRouter(DefaultRouter):
         counter = 1
         while url_name in self.used_url_names:
             if counter == 1:
-                # Ajouter un message de vérification au lieu d'un avertissement
-                # self.check_messages.append(
-                #     checks.Warning(
-                #         f"Le nom d'URL '{original_url_name}' est déjà utilisé. Génération d'un nom unique.",
-                #         hint="Changez le basename ou le chemin pour éviter les conflits.",
-                #         obj=original_url_name,
-                #         id='hybridrouter.W001',
-                #     )
-                # )
-                # warnings.warn(
-                #     f"Le nom d'URL '{original_url_name}' est déjà utilisé. Génération d'un nom unique."
-                # )
                 logger.warning(
                     f"Le nom d'URL '{original_url_name}' est déjà utilisé. Génération d'un nom unique."
                 )
