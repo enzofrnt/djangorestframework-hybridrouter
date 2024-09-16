@@ -22,17 +22,21 @@ from hybridroutertest.views import ServerConfigView, ClientModsView, ServerModsV
 
 
 router = HybridRouter()
-# router.include_root_view = True
+router.include_root_view = False
 router.include_intermediate_views = False
+router.register('server-configg/', ServerConfigView, basename='server-config')
 router.register('server-config/', ServerConfigView, basename='server-config')
+router.register('coucou/', ServerConfigViewSet, basename='coucou')
 router.register('coucou/client/', ClientModsView, basename='coucou-client')
 router.register('coucou/server/', ServerModsView, basename='coucou-server')
-router.register('coucou/', ServerConfigViewSet, basename='coucou')
+
 
 # Nouveau cas
-router.register('auto/1/',Auto1, basename='auto1')
-router.register('auto/2/',Auto2, basename='auto2')
-router.register('auto/3/',Auto3, basename='auto3')
+router.register('auto/1/', Auto1, basename='auto1')
+router.register('auto/2/', Auto2, basename='auto2')
+router.register('auto/3/', Auto3, basename='auto3')
+router.register('auto/4/', Auto3, basename='auto4')
+router.register('auto/44/', Auto3, basename='auto4')
 
 router.register('auto/3/coucou/',ServerConfigViewSet, basename='auto3coucou')
 router.register('auto/3/coucou/1/',ServerConfigViewSet, basename='auto3coucou')
@@ -48,8 +52,8 @@ router.register('autotkt/2/',Auto2, basename='autotkt2')
 
 from hybridroutertest.viewsets import AutoModelViewSet
 router.register('modelviewset/', AutoModelViewSet, basename='modelviewset')
-router.register('modelviewset/<int:id>/couco1/',Auto1, basename='autotkt12')
-router.register('modelviewset/1/couco2/',Auto2, basename='autotkt22')
+# router.register('modelviewset/<int:id>/couco1/',Auto1, basename='autotkt12')
+# router.register('modelviewset/1/couco2/',Auto2, basename='autotkt22')
 
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
@@ -79,5 +83,5 @@ urlpatterns = [
     path('', include(router.urls)),
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
-    path('objet/<int:id>/', votre_vue, name='nom_de_la_vue'),
+    # path('objet/<int:id>/', votre_vue, name='nom_de_la_vue'),
 ]
