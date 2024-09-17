@@ -1,12 +1,15 @@
 from collections import OrderedDict
-from rest_framework.routers import DefaultRouter, Route, DynamicRoute
-from rest_framework.viewsets import ViewSetMixin
+
+from django.urls import include, path, re_path
+from django.urls.exceptions import NoReverseMatch
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
+from rest_framework.routers import DefaultRouter
 from rest_framework.views import APIView
-from django.urls import path, include, re_path
-from django.urls.exceptions import NoReverseMatch
+from rest_framework.viewsets import ViewSetMixin
+
 from .utils import logger
+
 
 class TreeNode:
     def __init__(self, name=None):
@@ -18,9 +21,10 @@ class TreeNode:
         self.is_nested_router = False
         self.router = None  # For manually nested routers
 
+
 class HybridRouter(DefaultRouter):
     include_intermediate_views = True  # Controls intermediate views
-    trailing_slash = '/?'  # Define trailing slash as in DRF's SimpleRouter
+    trailing_slash = "/?"  # Define trailing slash as in DRF's SimpleRouter
 
     def __init__(self):
         super().__init__()
@@ -52,24 +56,26 @@ class HybridRouter(DefaultRouter):
         """
         if basename is None:
             basename = self.get_default_basename(view)
-        path_parts = prefix.strip('/').split('/')
+        path_parts = prefix.strip("/").split("/")
 
         # Register the information for conflict resolution
         if basename not in self.basename_registry:
             self.basename_registry[basename] = []
-        self.basename_registry[basename].append({
-            'prefix': prefix,
-            'view': view,
-            'basename': basename,
-            'path_parts': path_parts,
-        })
+        self.basename_registry[basename].append(
+            {
+                "prefix": prefix,
+                "view": view,
+                "basename": basename,
+                "path_parts": path_parts,
+            }
+        )
 
     def register_nested_router(self, prefix, router):
         """
         Registers a nested router under a certain prefix.
         """
         node = self.root_node
-        path_parts = prefix.strip('/').split('/')
+        path_parts = prefix.strip("/").split("/")
         for part in path_parts:
             if part not in node.children:
                 node.children[part] = TreeNode(name=part)
@@ -85,7 +91,7 @@ class HybridRouter(DefaultRouter):
         for basename, registrations in self.basename_registry.items():
             if len(registrations) > 1:
                 # Conflict detected
-                prefixes = [reg['prefix'] for reg in registrations]
+                prefixes = [reg["prefix"] for reg in registrations]
                 logger.warning(
                     f"The basename '{basename}' is used for multiple registrations: {', '.join(prefixes)}. "
                     "Generating unique basenames."
@@ -93,7 +99,7 @@ class HybridRouter(DefaultRouter):
                 # Assign new unique basenames
                 for idx, reg in enumerate(registrations, start=1):
                     unique_basename = f"{basename}_{idx}"
-                    reg['basename'] = unique_basename
+                    reg["basename"] = unique_basename
             # Else, the basename is unique, no need to change it
 
     def get_urls(self):
@@ -102,43 +108,55 @@ class HybridRouter(DefaultRouter):
         # Build the tree by calling _add_route for each registration
         for registrations in self.basename_registry.values():
             for reg in registrations:
-                self._add_route(reg['path_parts'], reg['view'], basename=reg['basename'])
+                self._add_route(
+                    reg["path_parts"], reg["view"], basename=reg["basename"]
+                )
         # Now, build the URLs
         urls = []
-        self._build_urls(self.root_node, '', urls)
+        self._build_urls(self.root_node, "", urls)
         return urls
 
     def _build_urls(self, node, prefix, urls):
-        if node.is_nested_router:
-            # Include the manually nested router
-            urls.append(
-                path(
-                    f'{prefix}',
-                    include((node.router.urls, node.router.root_view_name), namespace=node.router.root_view_name)
-                )
-            )
-        elif node.view:
+        # If there's a view at this node, add it
+        if node.view:
             if node.is_viewset:
                 # Generate URL patterns directly for the ViewSet
                 viewset_urls = self._get_viewset_urls(node.view, prefix, node.basename)
                 urls.extend(viewset_urls)
             else:
                 # Add the basic view with a unique name
-                name = f'{node.basename}'
-                urls.append(path(f'{prefix}', node.view.as_view(), name=name))
+                name = f"{node.basename}"
+                urls.append(path(f"{prefix}", node.view.as_view(), name=name))
+        # If this node is a nested router, include it
+        elif node.is_nested_router:
+            urls.append(
+                path(
+                    f"{prefix}",
+                    include(
+                        (node.router.urls, node.router.root_view_name),
+                        namespace=node.router.root_view_name,
+                    ),
+                )
+            )
+        # Process child nodes
         if node.children:
-            # If not at the root and intermediate views are enabled
-            if prefix and self.include_intermediate_views:
-                api_root_view = self._get_api_root_view(node, prefix)
-                if api_root_view:
-                    urls.append(path(f'{prefix}', api_root_view))
+            # Include intermediate views if enabled and there's no view at this node
+            if (
+                self.include_intermediate_views
+                and not node.view
+                and not node.is_nested_router
+            ):
+                if prefix:
+                    api_root_view = self._get_api_root_view(node, prefix)
+                    if api_root_view:
+                        urls.append(path(f"{prefix}", api_root_view))
             for child in node.children.values():
-                child_prefix = f'{prefix}{child.name}/'
+                child_prefix = f"{prefix}{child.name}/"
                 self._build_urls(child, child_prefix, urls)
 
     def _get_viewset_urls(self, viewset, prefix, basename):
         """
-        Generate URL patterns for a ViewSet without using a sub-router.
+        Génère les URL patterns pour un ViewSet sans utiliser de sous-routeur.
         """
         routes = self.get_routes(viewset)
         urls = []
@@ -149,23 +167,29 @@ class HybridRouter(DefaultRouter):
             if not mapping:
                 continue
 
-            # Build the URL pattern
+            # Construire le pattern URL
             regex = route.url.format(
-                prefix=prefix.rstrip('/'),
+                prefix=prefix.rstrip("/"),
                 lookup=lookup,
-                trailing_slash=self.trailing_slash
+                trailing_slash=self.trailing_slash,
             )
 
-            # Generate the view function
+            # Générer la vue
             view = viewset.as_view(mapping, **route.initkwargs)
 
-            # Generate the URL name
+            # Générer le nom de l'URL
             name = route.name.format(basename=basename) if route.name else None
 
-            # Append the URL pattern
+            # Ajouter le pattern URL
             urls.append(re_path(regex, view, name=name))
 
         return urls
+
+    def clean_pattern(pattern):
+        """
+        Nettoie le pattern d'URL en supprimant les caractères '^' et '$'.
+        """
+        return pattern.pattern.replace("^", "").replace("$", "")
 
     def get_routes(self, viewset):
         """
@@ -190,9 +214,11 @@ class HybridRouter(DefaultRouter):
         """
         Return the regex pattern for the lookup field.
         """
-        lookup_field = getattr(viewset, 'lookup_field', 'pk')
-        lookup_value = getattr(viewset, 'lookup_value_regex', '[^/.]+')
-        return '(?P<{lookup_field}>{lookup_value})'.format(lookup_field=lookup_field, lookup_value=lookup_value)
+        lookup_field = getattr(viewset, "lookup_field", "pk")
+        lookup_value = getattr(viewset, "lookup_value_regex", "[^/.]+")
+        return "(?P<{lookup_field}>{lookup_value})".format(
+            lookup_field=lookup_field, lookup_value=lookup_value
+        )
 
     def _get_api_root_view(self, node, prefix):
         api_root_dict = OrderedDict()
@@ -201,11 +227,11 @@ class HybridRouter(DefaultRouter):
         for child_name, child_node in node.children.items():
             has_children = True
             if child_node.is_viewset or child_node.view:
-                url_name = f'{child_node.basename}-list'
+                url_name = f"{child_node.basename}-list"
             elif child_node.is_nested_router:
-                url_name = f'{prefix}{child_name}-api-root'
+                url_name = f"{prefix}{child_name}-api-root"
             else:
-                url_name = f'{prefix}{child_name}-api-root'
+                url_name = f"{prefix}{child_name}-api-root"
             api_root_dict[child_name] = url_name
 
         if not has_children:
@@ -226,7 +252,7 @@ class HybridRouter(DefaultRouter):
                     try:
                         ret[key] = reverse(url_name_full, request=request)
                     except NoReverseMatch:
-                        ret[key] = request.build_absolute_uri(f'{key}/')
+                        ret[key] = request.build_absolute_uri(f"{key}/")
                 return Response(ret)
 
         return APIRoot.as_view()
@@ -238,11 +264,11 @@ class HybridRouter(DefaultRouter):
         """
         if not self.include_root_view:
             return None
-        return self._get_api_root_view(self.root_node, '')
+        return self._get_api_root_view(self.root_node, "")
 
     @property
     def urls(self):
         urls = self.get_urls()
         if self.include_root_view:
-            urls.append(path('', self.get_api_root_view(), name=self.root_view_name))
+            urls.append(path("", self.get_api_root_view(), name=self.root_view_name))
         return urls
