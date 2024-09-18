@@ -132,10 +132,7 @@ class HybridRouter(DefaultRouter):
             urls.append(
                 path(
                     f"{prefix}",
-                    include(
-                        (node.router.urls, node.router.root_view_name),
-                        namespace=node.router.root_view_name,
-                    ),
+                    include(node.router.urls),
                 )
             )
         # Process child nodes
@@ -184,12 +181,6 @@ class HybridRouter(DefaultRouter):
             urls.append(re_path(regex, view, name=name))
 
         return urls
-
-    def clean_pattern(pattern):
-        """
-        Nettoie le pattern d'URL en supprimant les caractères '^' et '$'.
-        """
-        return pattern.pattern.replace("^", "").replace("$", "")
 
     def get_routes(self, viewset):
         """

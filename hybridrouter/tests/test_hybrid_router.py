@@ -1,5 +1,6 @@
 import types
 
+import pytest
 from django.test import override_settings
 from django.urls import include, path, reverse
 from django.urls.resolvers import get_resolver
@@ -104,13 +105,24 @@ def test_custom_lookup_field(hybrid_router, db):
         assert response.status_code == status.HTTP_200_OK
 
 
-# def test_api_root_view(hybrid_router, db): #NEED MORE TEST CASE
-#     hybrid_router.include_root_view = True  # Is by default True
+def test_api_root_view(hybrid_router, db):
+    # include_root_view est True par défaut
+    hybrid_router.register("items", ItemViewSet, basename="item")
+    hybrid_router.register("users", ItemViewSet, basename="user")
 
+    urlconf = create_urlconf(hybrid_router)
 
-#     urlconf = create_urlconf(hybrid_router)
+    with override_settings(ROOT_URLCONF=urlconf):
+        resolver = get_resolver(urlconf)
+        recevoir_test_url_resolver(resolver.url_patterns)
 
-#     with
+        response = APIClient().get("/")
+        assert response.status_code == status.HTTP_200_OK
+        expected_data = {
+            "items": "http://testserver/items/",
+            "users": "http://testserver/users/",
+        }
+        assert response.json() == expected_data
 
 
 def test_no_api_root_view(hybrid_router, db):
@@ -126,8 +138,8 @@ def test_no_api_root_view(hybrid_router, db):
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
-def test_intermediary_view(hybrid_router, db):  # NEED MORE TEST CASE
-    hybrid_router.include_intermediate_views = True  # Is by default True
+def test_intermediary_view(hybrid_router, db):  # TODO: TEST this in more situations
+    hybrid_router.include_intermediate_views = True  # Par défaut True
 
     hybrid_router.register("items/1/", ItemView, basename="item_1")
     hybrid_router.register("items/2/", ItemView, basename="item_2")
@@ -144,7 +156,7 @@ def test_intermediary_view(hybrid_router, db):  # NEED MORE TEST CASE
         response = APIClient().get("/items/2/")
         assert response.status_code == status.HTTP_200_OK
 
-        # Is the intermediary view available
+        # La vue intermédiaire est-elle disponible ?
 
         response = APIClient().get("/items/")
         assert response.status_code == status.HTTP_200_OK
@@ -154,7 +166,7 @@ def test_intermediary_view(hybrid_router, db):  # NEED MORE TEST CASE
         }
 
 
-def test_no_intermediary_view(hybrid_router, db):
+def test_no_intermediary_view(hybrid_router, db):  # TODO: TEST this in more situations
     hybrid_router.include_intermediate_views = False
 
     hybrid_router.register("items/1/", ItemView, basename="item_1")
@@ -172,16 +184,13 @@ def test_no_intermediary_view(hybrid_router, db):
         response = APIClient().get("/items/2/")
         assert response.status_code == status.HTTP_200_OK
 
-        # Is the intermediary view available
-
         response = APIClient().get("/items/")
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
-@override_settings()
 def test_register_nested_router(hybrid_router, db):
     nested_router = DefaultRouter()
-    nested_router.register("items/", ItemViewSet, basename="item")
+    nested_router.register("items", ItemViewSet, basename="item")
 
     hybrid_router.register_nested_router("nested/", nested_router)
 
@@ -189,22 +198,180 @@ def test_register_nested_router(hybrid_router, db):
 
     with override_settings(ROOT_URLCONF=urlconf):
         resolver = get_resolver(urlconf)
-        print("get_resolver:", resolver)
-
-        # Assigner à la variable globale via la fonction
         recevoir_test_url_resolver(resolver.url_patterns)
 
-        # Vérifier que la valeur est bien assignée
-        # from .conftest import test_url_resolver
-
-        # print("test_url_resolver après assignation:", test_url_resolver)
-
-        response = APIClient().get("/nested/")
+        response = APIClient().get("/nested/items/")
         assert response.status_code == status.HTTP_200_OK
 
-        # response = APIClient().get(reverse("item"))
-        # # response = APIClient().get("/nested/items/")
-        # assert response.status_code == status.HTTP_200_OK
+
+def test_nested_router_url_patterns(hybrid_router, db):
+    nested_router = DefaultRouter()
+    nested_router.register("items", ItemViewSet, basename="item")
+
+    hybrid_router.register_nested_router("api/v1/", nested_router)
+
+    urlconf = create_urlconf(hybrid_router)
+
+    # Assurez-vous que le code du module est mis à jour pour ne pas utiliser de namespace lors de l'inclusion du routeur imbriqué.
+
+    with override_settings(ROOT_URLCONF=urlconf):
+        resolver = get_resolver(urlconf)
+        recevoir_test_url_resolver(resolver.url_patterns)
+
+        list_url = reverse("item-list")
+        assert list_url == "/api/v1/items/"
+
+        response = APIClient().get("/api/v1/items/")
+        assert response.status_code == status.HTTP_200_OK
+
+
+def test_no_basename_provided(hybrid_router):  # TODO: TEST this in more situations
+    # Enregistrer un ViewSet sans fournir de basename
+    hybrid_router.register("items", ItemViewSet)
+    # Le basename par défaut devrait être 'item'
+
+    urlconf = create_urlconf(hybrid_router)
+
+    with override_settings(ROOT_URLCONF=urlconf):
+        resolver = get_resolver(urlconf)
+        recevoir_test_url_resolver(resolver.url_patterns)
+
+        # Essayer de renverser les noms d'URL en utilisant le basename par défaut
+        list_url = reverse("item-list")
+        assert list_url == "/items/"
+
+
+def test_no_basename_conflict(hybrid_router):
+    # Enregistrer deux ViewSets de la même classe sans basename
+    hybrid_router.register("items1", ItemViewSet)
+    hybrid_router.register("items2", ItemViewSet)
+
+    urlconf = create_urlconf(hybrid_router)
+
+    with override_settings(ROOT_URLCONF=urlconf):
+        resolver = get_resolver(urlconf)
+        recevoir_test_url_resolver(resolver.url_patterns)
+
+        # Les basenames par défaut seront les mêmes, il devrait y avoir un conflit résolu
+        list_url1 = reverse("item_1-list")
+        list_url2 = reverse("item_2-list")
+        assert list_url1 == "/items1/"
+        assert list_url2 == "/items2/"
+
+
+def test_same_basename_warning(
+    hybrid_router, caplog
+):  # TODO: test in more situations lioke with only views and with booth
+    hybrid_router.register("items1", ItemViewSet, basename="item")
+    hybrid_router.register("items2", ItemViewSet, basename="item")
+
+    urlconf = create_urlconf(hybrid_router)
+
+    with override_settings(ROOT_URLCONF=urlconf):
+        resolver = get_resolver(urlconf)
+        recevoir_test_url_resolver(resolver.url_patterns)
+
+        # Vérifier qu'un avertissement a été enregistré
+        warnings = [
+            record for record in caplog.records if record.levelname == "WARNING"
+        ]
+        assert len(warnings) >= 1
+        assert (
+            "The basename 'item' is used for multiple registrations"
+            in warnings[0].message
+        )
+
+        # Vérifier que des basenames uniques ont été assignés
+        list_url1 = reverse("item_1-list")
+        list_url2 = reverse("item_2-list")
+        assert list_url1 == "/items1/"
+        assert list_url2 == "/items2/"
+
+
+def test_register_with_trailing_slash_in_prefix(hybrid_router, db):
+    hybrid_router.register("items/", ItemViewSet, basename="item")
+
+    urlconf = create_urlconf(hybrid_router)
+
+    with override_settings(ROOT_URLCONF=urlconf):
+        resolver = get_resolver(urlconf)
+        recevoir_test_url_resolver(resolver.url_patterns)
+
+        list_url = reverse("item-list")
+        assert list_url == "/items/"
+
+        # Essayer d'accéder à l'URL
+        response = APIClient().get("/items/")
+        assert response.status_code == status.HTTP_200_OK
+
+
+def test_custom_trailing_slash(hybrid_router, db):
+    # Définir trailing_slash sur une chaîne vide
+    hybrid_router.trailing_slash = ""
+
+    hybrid_router.register("items", ItemViewSet, basename="item")
+
+    urlconf = create_urlconf(hybrid_router)
+
+    with override_settings(ROOT_URLCONF=urlconf):
+        resolver = get_resolver(urlconf)
+        recevoir_test_url_resolver(resolver.url_patterns)
+
+        list_url = reverse("item-list")
+        assert list_url == "/items"
+
+        # Essayer d'accéder à l'URL
+        response = APIClient().get("/items")
+        assert response.status_code == status.HTTP_200_OK
+
+
+def test_intermediate_view_with_nested_router(hybrid_router, db):
+    hybrid_router.include_intermediate_views = True
+
+    nested_router = DefaultRouter()
+    nested_router.register("subitems", ItemViewSet, basename="subitem")
+
+    hybrid_router.register_nested_router("items/", nested_router)
+
+    urlconf = create_urlconf(hybrid_router)
+
+    with override_settings(ROOT_URLCONF=urlconf):
+        resolver = get_resolver(urlconf)
+        recevoir_test_url_resolver(resolver.url_patterns)
+
+        # La vue intermédiaire 'items/' devrait être disponible
+        response = APIClient().get("/items/")
+        assert response.status_code == status.HTTP_200_OK
+
+        # Les URLs du routeur imbriqué devraient être accessibles
+        response = APIClient().get("/items/subitems/")
+        assert response.status_code == status.HTTP_200_OK
+
+
+def test_no_intermediate_view_with_nested_router(hybrid_router, db):
+    hybrid_router.include_intermediate_views = False
+
+    nested_router = DefaultRouter()
+    nested_router.include_root_view = (
+        False  # Important pour éviter la vue intermédiaire
+    )
+    nested_router.register("subitems", ItemViewSet, basename="subitem")
+
+    hybrid_router.register_nested_router("items/", nested_router)
+
+    urlconf = create_urlconf(hybrid_router)
+
+    with override_settings(ROOT_URLCONF=urlconf):
+        resolver = get_resolver(urlconf)
+        recevoir_test_url_resolver(resolver.url_patterns)
+
+        # La vue intermédiaire 'items/' ne devrait pas être disponible
+        response = APIClient().get("/items/")
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+        # Les URLs du routeur imbriqué devraient être accessibles
+        response = APIClient().get("/items/subitems/")
+        assert response.status_code == status.HTTP_200_OK
 
 
 # TEST REGISTER ROOTER DIRECTK
@@ -212,7 +379,6 @@ def test_register_nested_router(hybrid_router, db):
 # TEST NO API ROOT
 # TEST NO INTERMEDIRAY WIEW
 # TEST INTERMEDIARY VIEW IN DIFERENT CONTEXT
-
 # TEST ERROR WHEN SAME BASENAME
 # TEST WHEN SAME BASENAME
 # TEST WHEN NO BASE NAME ON RESGITER
