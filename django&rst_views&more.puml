@@ -1,0 +1,273 @@
+@startuml all_views
+!pragma useIntermediatePackages false
+
+class django.views.generic.base.View {
+}
+class django.views.generic.base.ContextMixin {
+}
+class django.views.generic.base.RedirectView {
+}
+class django.views.generic.base.TemplateResponseMixin {
+}
+class django.views.generic.base.TemplateView {
+}
+class django.views.generic.dates.ArchiveIndexView {
+}
+class django.views.generic.dates.BaseArchiveIndexView {
+}
+class django.views.generic.dates.BaseDateDetailView {
+}
+class django.views.generic.dates.BaseDateListView {
+}
+class django.views.generic.dates.BaseDayArchiveView {
+}
+class django.views.generic.detail.BaseDetailView {
+}
+class django.views.generic.dates.BaseMonthArchiveView {
+}
+class django.views.generic.dates.BaseTodayArchiveView {
+}
+class django.views.generic.dates.BaseWeekArchiveView {
+}
+class django.views.generic.dates.BaseYearArchiveView {
+}
+class django.views.generic.dates.DateDetailView {
+}
+class django.views.generic.dates.DateMixin {
+}
+class django.views.generic.dates.DayArchiveView {
+}
+class django.views.generic.dates.DayMixin {
+}
+class django.views.generic.dates.MonthArchiveView {
+}
+class django.views.generic.dates.MonthMixin {
+}
+class django.views.generic.list.MultipleObjectMixin {
+}
+class django.views.generic.list.MultipleObjectTemplateResponseMixin {
+}
+class django.views.generic.detail.SingleObjectTemplateResponseMixin {
+}
+class django.views.generic.dates.TodayArchiveView {
+}
+class django.views.generic.dates.WeekArchiveView {
+}
+class django.views.generic.dates.WeekMixin {
+}
+class django.views.generic.dates.YearArchiveView {
+}
+class django.views.generic.dates.YearMixin {
+}
+class django.views.generic.detail.DetailView {
+}
+class django.views.generic.detail.SingleObjectMixin {
+}
+class django.views.generic.edit.BaseCreateView {
+}
+class django.views.generic.edit.BaseDeleteView {
+}
+class django.views.generic.edit.BaseFormView {
+}
+class django.views.generic.edit.BaseUpdateView {
+}
+class django.views.generic.edit.CreateView {
+}
+class django.views.generic.edit.DeleteView {
+}
+class django.views.generic.edit.DeletionMixin {
+}
+class django.views.generic.edit.FormMixin {
+}
+class django.views.generic.edit.FormView {
+}
+class django.views.generic.edit.ModelFormMixin {
+}
+class django.views.generic.edit.ProcessFormView {
+}
+class django.views.generic.edit.UpdateView {
+}
+class django.views.generic.list.BaseListView {
+}
+class django.views.generic.list.ListView {
+}
+class django.views.i18n.JSONCatalog {
+}
+class django.views.i18n.JavaScriptCatalog {
+}
+django.views.generic.base.View <|-- django.views.generic.base.RedirectView
+django.views.generic.base.TemplateResponseMixin <|-- django.views.generic.base.TemplateView
+django.views.generic.base.ContextMixin <|-- django.views.generic.base.TemplateView
+django.views.generic.base.View <|-- django.views.generic.base.TemplateView
+django.views.generic.list.MultipleObjectTemplateResponseMixin <|-- django.views.generic.dates.ArchiveIndexView
+django.views.generic.dates.BaseArchiveIndexView <|-- django.views.generic.dates.ArchiveIndexView
+django.views.generic.dates.BaseDateListView <|-- django.views.generic.dates.BaseArchiveIndexView
+django.views.generic.dates.YearMixin <|-- django.views.generic.dates.BaseDateDetailView
+django.views.generic.dates.MonthMixin <|-- django.views.generic.dates.BaseDateDetailView
+django.views.generic.dates.DayMixin <|-- django.views.generic.dates.BaseDateDetailView
+django.views.generic.dates.DateMixin <|-- django.views.generic.dates.BaseDateDetailView
+django.views.generic.detail.BaseDetailView <|-- django.views.generic.dates.BaseDateDetailView
+django.views.generic.list.MultipleObjectMixin <|-- django.views.generic.dates.BaseDateListView
+django.views.generic.dates.DateMixin <|-- django.views.generic.dates.BaseDateListView
+django.views.generic.base.View <|-- django.views.generic.dates.BaseDateListView
+django.views.generic.dates.YearMixin <|-- django.views.generic.dates.BaseDayArchiveView
+django.views.generic.dates.MonthMixin <|-- django.views.generic.dates.BaseDayArchiveView
+django.views.generic.dates.DayMixin <|-- django.views.generic.dates.BaseDayArchiveView
+django.views.generic.dates.BaseDateListView <|-- django.views.generic.dates.BaseDayArchiveView
+django.views.generic.detail.SingleObjectMixin <|-- django.views.generic.detail.BaseDetailView
+django.views.generic.base.View <|-- django.views.generic.detail.BaseDetailView
+django.views.generic.dates.YearMixin <|-- django.views.generic.dates.BaseMonthArchiveView
+django.views.generic.dates.MonthMixin <|-- django.views.generic.dates.BaseMonthArchiveView
+django.views.generic.dates.BaseDateListView <|-- django.views.generic.dates.BaseMonthArchiveView
+django.views.generic.dates.BaseDayArchiveView <|-- django.views.generic.dates.BaseTodayArchiveView
+django.views.generic.dates.YearMixin <|-- django.views.generic.dates.BaseWeekArchiveView
+django.views.generic.dates.WeekMixin <|-- django.views.generic.dates.BaseWeekArchiveView
+django.views.generic.dates.BaseDateListView <|-- django.views.generic.dates.BaseWeekArchiveView
+django.views.generic.dates.YearMixin <|-- django.views.generic.dates.BaseYearArchiveView
+django.views.generic.dates.BaseDateListView <|-- django.views.generic.dates.BaseYearArchiveView
+django.views.generic.detail.SingleObjectTemplateResponseMixin <|-- django.views.generic.dates.DateDetailView
+django.views.generic.dates.BaseDateDetailView <|-- django.views.generic.dates.DateDetailView
+django.views.generic.list.MultipleObjectTemplateResponseMixin <|-- django.views.generic.dates.DayArchiveView
+django.views.generic.dates.BaseDayArchiveView <|-- django.views.generic.dates.DayArchiveView
+django.views.generic.list.MultipleObjectTemplateResponseMixin <|-- django.views.generic.dates.MonthArchiveView
+django.views.generic.dates.BaseMonthArchiveView <|-- django.views.generic.dates.MonthArchiveView
+django.views.generic.base.ContextMixin <|-- django.views.generic.list.MultipleObjectMixin
+django.views.generic.base.TemplateResponseMixin <|-- django.views.generic.list.MultipleObjectTemplateResponseMixin
+django.views.generic.base.TemplateResponseMixin <|-- django.views.generic.detail.SingleObjectTemplateResponseMixin
+django.views.generic.list.MultipleObjectTemplateResponseMixin <|-- django.views.generic.dates.TodayArchiveView
+django.views.generic.dates.BaseTodayArchiveView <|-- django.views.generic.dates.TodayArchiveView
+django.views.generic.list.MultipleObjectTemplateResponseMixin <|-- django.views.generic.dates.WeekArchiveView
+django.views.generic.dates.BaseWeekArchiveView <|-- django.views.generic.dates.WeekArchiveView
+django.views.generic.list.MultipleObjectTemplateResponseMixin <|-- django.views.generic.dates.YearArchiveView
+django.views.generic.dates.BaseYearArchiveView <|-- django.views.generic.dates.YearArchiveView
+django.views.generic.detail.SingleObjectTemplateResponseMixin <|-- django.views.generic.detail.DetailView
+django.views.generic.detail.BaseDetailView <|-- django.views.generic.detail.DetailView
+django.views.generic.base.ContextMixin <|-- django.views.generic.detail.SingleObjectMixin
+django.views.generic.edit.ModelFormMixin <|-- django.views.generic.edit.BaseCreateView
+django.views.generic.edit.ProcessFormView <|-- django.views.generic.edit.BaseCreateView
+django.views.generic.edit.DeletionMixin <|-- django.views.generic.edit.BaseDeleteView
+django.views.generic.edit.FormMixin <|-- django.views.generic.edit.BaseDeleteView
+django.views.generic.detail.BaseDetailView <|-- django.views.generic.edit.BaseDeleteView
+django.views.generic.edit.FormMixin <|-- django.views.generic.edit.BaseFormView
+django.views.generic.edit.ProcessFormView <|-- django.views.generic.edit.BaseFormView
+django.views.generic.edit.ModelFormMixin <|-- django.views.generic.edit.BaseUpdateView
+django.views.generic.edit.ProcessFormView <|-- django.views.generic.edit.BaseUpdateView
+django.views.generic.detail.SingleObjectTemplateResponseMixin <|-- django.views.generic.edit.CreateView
+django.views.generic.edit.BaseCreateView <|-- django.views.generic.edit.CreateView
+django.views.generic.detail.SingleObjectTemplateResponseMixin <|-- django.views.generic.edit.DeleteView
+django.views.generic.edit.BaseDeleteView <|-- django.views.generic.edit.DeleteView
+django.views.generic.base.ContextMixin <|-- django.views.generic.edit.FormMixin
+django.views.generic.base.TemplateResponseMixin <|-- django.views.generic.edit.FormView
+django.views.generic.edit.BaseFormView <|-- django.views.generic.edit.FormView
+django.views.generic.edit.FormMixin <|-- django.views.generic.edit.ModelFormMixin
+django.views.generic.detail.SingleObjectMixin <|-- django.views.generic.edit.ModelFormMixin
+django.views.generic.base.View <|-- django.views.generic.edit.ProcessFormView
+django.views.generic.detail.SingleObjectTemplateResponseMixin <|-- django.views.generic.edit.UpdateView
+django.views.generic.edit.BaseUpdateView <|-- django.views.generic.edit.UpdateView
+django.views.generic.list.MultipleObjectMixin <|-- django.views.generic.list.BaseListView
+django.views.generic.base.View <|-- django.views.generic.list.BaseListView
+django.views.generic.list.MultipleObjectTemplateResponseMixin <|-- django.views.generic.list.ListView
+django.views.generic.list.BaseListView <|-- django.views.generic.list.ListView
+django.views.i18n.JavaScriptCatalog <|-- django.views.i18n.JSONCatalog
+django.views.generic.base.View <|-- django.views.i18n.JavaScriptCatalog
+
+
+
+
+
+class rest_framework.views.APIView {
+}
+footer Generated by //py2puml//
+django.views.generic.base.View <|-- rest_framework.views.APIView 
+
+
+
+
+
+
+class rest_framework.generics.CreateAPIView {
+}
+class rest_framework.generics.DestroyAPIView {
+}
+class rest_framework.generics.GenericAPIView {
+}
+class rest_framework.generics.ListAPIView {
+}
+class rest_framework.generics.ListCreateAPIView {
+}
+class rest_framework.generics.RetrieveAPIView {
+}
+class rest_framework.generics.RetrieveDestroyAPIView {
+}
+class rest_framework.generics.RetrieveUpdateAPIView {
+}
+class rest_framework.generics.RetrieveUpdateDestroyAPIView {
+}
+class rest_framework.generics.UpdateAPIView {
+}
+rest_framework.generics.GenericAPIView <|-- rest_framework.generics.CreateAPIView
+rest_framework.generics.GenericAPIView <|-- rest_framework.generics.DestroyAPIView
+rest_framework.generics.GenericAPIView <|-- rest_framework.generics.ListAPIView
+rest_framework.generics.GenericAPIView <|-- rest_framework.generics.ListCreateAPIView
+rest_framework.generics.GenericAPIView <|-- rest_framework.generics.RetrieveAPIView
+rest_framework.generics.GenericAPIView <|-- rest_framework.generics.RetrieveDestroyAPIView
+rest_framework.generics.GenericAPIView <|-- rest_framework.generics.RetrieveUpdateAPIView
+rest_framework.generics.GenericAPIView <|-- rest_framework.generics.RetrieveUpdateDestroyAPIView
+rest_framework.generics.GenericAPIView <|-- rest_framework.generics.UpdateAPIView
+rest_framework.views.APIView <|-- rest_framework.generics.GenericAPIView
+rest_framework.mixins.CreateModelMixin <|-- rest_framework.generics.CreateAPIView
+rest_framework.mixins.ListModelMixin <|-- rest_framework.generics.ListAPIView
+rest_framework.mixins.RetrieveModelMixin <|-- rest_framework.generics.RetrieveAPIView
+rest_framework.mixins.DestroyModelMixin <|-- rest_framework.generics.DestroyAPIView
+rest_framework.mixins.UpdateModelMixin <|-- rest_framework.generics.UpdateAPIView
+rest_framework.mixins.ListModelMixin <|-- rest_framework.generics.ListCreateAPIView
+rest_framework.mixins.CreateModelMixin <|-- rest_framework.generics.ListCreateAPIView
+rest_framework.mixins.UpdateModelMixin <|-- rest_framework.generics.RetrieveUpdateAPIView
+rest_framework.mixins.RetrieveModelMixin <|-- rest_framework.generics.RetrieveUpdateAPIView
+rest_framework.mixins.RetrieveModelMixin <|-- rest_framework.generics.RetrieveDestroyAPIView
+rest_framework.mixins.DestroyModelMixin <|-- rest_framework.generics.RetrieveDestroyAPIView
+rest_framework.mixins.RetrieveModelMixin <|-- rest_framework.generics.RetrieveUpdateDestroyAPIView
+rest_framework.mixins.UpdateModelMixin <|-- rest_framework.generics.RetrieveUpdateDestroyAPIView
+rest_framework.mixins.DestroyModelMixin <|-- rest_framework.generics.RetrieveUpdateDestroyAPIView
+
+
+
+class rest_framework.mixins.CreateModelMixin {
+}
+class rest_framework.mixins.DestroyModelMixin {
+}
+class rest_framework.mixins.ListModelMixin {
+}
+class rest_framework.mixins.RetrieveModelMixin {
+}
+class rest_framework.mixins.UpdateModelMixin {
+}
+
+
+class rest_framework.viewsets.GenericViewSet {
+}
+class rest_framework.viewsets.ModelViewSet {
+}
+class rest_framework.viewsets.ReadOnlyModelViewSet {
+}
+class rest_framework.viewsets.ViewSet {
+}
+class rest_framework.viewsets.ViewSetMixin {
+}
+rest_framework.viewsets.ViewSetMixin <|-- rest_framework.viewsets.GenericViewSet
+rest_framework.generics.GenericAPIView <|-- rest_framework.viewsets.GenericViewSet
+rest_framework.viewsets.GenericViewSet <|-- rest_framework.viewsets.ModelViewSet
+rest_framework.mixins.CreateModelMixin <|-- rest_framework.viewsets.ModelViewSet
+rest_framework.mixins.RetrieveModelMixin <|-- rest_framework.viewsets.ModelViewSet
+rest_framework.mixins.UpdateModelMixin <|-- rest_framework.viewsets.ModelViewSet
+rest_framework.mixins.DestroyModelMixin <|-- rest_framework.viewsets.ModelViewSet
+rest_framework.mixins.ListModelMixin <|-- rest_framework.viewsets.ModelViewSet
+rest_framework.viewsets.GenericViewSet <|-- rest_framework.viewsets.ReadOnlyModelViewSet
+rest_framework.mixins.RetrieveModelMixin <|-- rest_framework.viewsets.ReadOnlyModelViewSet
+rest_framework.mixins.ListModelMixin <|-- rest_framework.viewsets.ReadOnlyModelViewSet
+rest_framework.viewsets.ViewSetMixin <|-- rest_framework.viewsets.ViewSet
+rest_framework.views.APIView <|-- rest_framework.viewsets.ViewSet
+
+
+footer Generated by //py2puml//
+@enduml
