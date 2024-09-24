@@ -154,6 +154,34 @@ In this example, all routes from nested_router will be available under the `nest
 
 The automatic creation of intermediary API views is a feature that improves the browsable API experience. This feature is still in development and may not work as expected in all cases. Please report any issues or suggestions.
 
+```python
+router = HybridRouter(enable_intermediate_apiviews=False)
+
+router.register('server-config', ServerConfigView, name='server-config')
+router.register('mods/client', ClientModsView, name='mods-client')
+router.register('mods/server', ServerModsView, name='mods-server')
+router.register('coucou/client', ClientModsView, name='coucou-client')
+router.register('coucou/server', ServerModsView, name='coucou-server')
+router.register('coucou', ServerConfigViewSet, basename='coucou')
+```
+
+With this configuration of the router with `enable_intermediate_apiviews`set to `False`, the intermediary API views will not be created. So the browsable API will look like on a `DefaultRouter` :
+
+![image](./docs/imgs/Before.png)
+
+But if you set `enable_intermediate_apiviews` to `True`, the intermediary API views will be created and the browsable API will look like this:
+
+```python
+router = HybridRouter(enable_intermediate_apiviews=True)
+```
+
+![image](./docs/imgs/After_1.png)
+![image](./docs/imgs/After_2.png)
+
+This improves the readability and the logic of the browsable API and provides a better user experience. 
+
+And as you can see that will not interfere with other already existing views. **Here, the `ServerConfigViewSet` is still accessible through the `coucou` endpoint and as not been overridden by an intermediary API view.**
+
 ## Testing
 
 The package includes comprehensive tests to ensure reliability. Here are some highlights:
