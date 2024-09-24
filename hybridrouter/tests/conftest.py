@@ -1,6 +1,5 @@
 import django
 import pytest
-from django.test.utils import override_settings
 from django.urls import get_resolver
 
 from .utils import list_urls
@@ -41,7 +40,8 @@ def pytest_exception_interact(node, call, report):
                     urls.append(f"{url} -> {name}")
             return urls
 
-        urls_list = collect_urls(all_urls)
+        urls_list = list_urls(all_urls, prefix="http://localhost/")
+        # urls_list = collect_urls(all_urls)
         urls_text = "\n".join(urls_list)
 
         if hasattr(report, "longrepr"):
