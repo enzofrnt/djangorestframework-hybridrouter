@@ -1,12 +1,13 @@
 import logging
 
+
 class ColorFormatter(logging.Formatter):
     COLOR_MAP = {
-        'ERROR': '\033[31m',    # Rouge
-        'WARNING': '\033[33m',  # Jaune/Orange
-        'INFO': '\033[32m',     # Vert
+        "ERROR": "\033[31m",  # Rouge
+        "WARNING": "\033[33m",  # Jaune/Orange
+        "INFO": "\033[32m",  # Vert
     }
-    RESET = '\033[0m'
+    RESET = "\033[0m"
 
     def __init__(self, fmt=None, datefmt=None):
         super().__init__(fmt, datefmt)
@@ -24,13 +25,14 @@ class ColorFormatter(logging.Formatter):
         # Combiner la date non colorée avec le message coloré
         return f"{date_str}{colored_message}"
 
+
 # Configurer le logger 'hybridrouter'
-logger = logging.getLogger('hybridrouter')
+logger = logging.getLogger("hybridrouter")
 logger.setLevel(logging.DEBUG)  # Définir le niveau de log souhaité
 
 # Définir le format avec la date
-log_format = '[%(asctime)s] %(levelname)s: %(message)s'
-date_format = '%d/%b/%Y %H:%M:%S'
+log_format = "[%(asctime)s] %(levelname)s: %(message)s"
+date_format = "%d/%b/%Y %H:%M:%S"
 
 # Initialiser le ColorFormatter avec le format et le format de date
 color_formatter = ColorFormatter(fmt=log_format, datefmt=date_format)

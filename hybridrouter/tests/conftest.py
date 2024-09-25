@@ -1,5 +1,6 @@
 import django
 import pytest
+from django.core.exceptions import ImproperlyConfigured
 from django.urls import get_resolver
 
 from .utils import list_urls
@@ -13,7 +14,7 @@ def recevoir_test_url_resolver(url_resolver):
 
 
 def pytest_exception_interact(node, call, report):
-    global test_url_resolver  # Rendre la variable globale
+    global test_url_resolver
 
     print("test_url_resolver lors de l'exception:", test_url_resolver)
 
@@ -23,25 +24,16 @@ def pytest_exception_interact(node, call, report):
         if test_url_resolver:
             all_urls = test_url_resolver
         else:
-            all_urls = get_resolver().url_patterns
-
-        def collect_urls(urlpatterns, prefix="http://localhost/"):
-            urls = []
-            for pattern in urlpatterns:
-                if hasattr(pattern, "url_patterns"):
-                    urls.extend(
-                        collect_urls(
-                            pattern.url_patterns, prefix + str(pattern.pattern)
-                        )
-                    )
-                else:
-                    url = prefix + str(pattern.pattern)
-                    name = pattern.name if pattern.name else "None"
-                    urls.append(f"{url} -> {name}")
-            return urls
+            try:
+                all_urls = get_resolver().url_patterns
+                # Votre code ici
+            except ImproperlyConfigured:
+                return
+            except ModuleNotFoundError as e:
+                print(f"Erreur lors de l'accès au résolveur : {e}")
+                return
 
         urls_list = list_urls(all_urls, prefix="http://localhost/")
-        # urls_list = collect_urls(all_urls)
         urls_text = "\n".join(urls_list)
 
         if hasattr(report, "longrepr"):

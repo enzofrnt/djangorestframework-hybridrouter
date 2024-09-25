@@ -76,23 +76,23 @@ This configuration will generate URLs for both APIViews and ViewSets, and includ
 **HybridRouter**
 
 -   `register(prefix, view, basename=None)`
-    
+
     Registers an `APIView` or `ViewSet` with the specified prefix.
-    
+
     -   `prefix`: URL prefix for the view or viewset.
     -   `view`: The `APIView `or `ViewSet` class.
     -   `basename`: The base name for the view or viewset (optional). If not provided, it will be automatically generated.
 -   `register_nested_router(prefix, router)`
-    
+
     Registers a nested router under a specific prefix.
-    
+
     -   `prefix`: URL prefix under which the nested router will be registered.
     -   `router`: The DRF router instance to be nested.
 
 **Attributes**
 
 -   `include_intermediate_views` (default True)
-    
+
     Controls whether intermediate API views are automatically created for grouped endpoints. When set to True, the router will generate intermediate views that provide a browsable API listing of all endpoints under a common prefix.
 
 **Notes**
@@ -178,7 +178,7 @@ router = HybridRouter(enable_intermediate_apiviews=True)
 ![image](./docs/imgs/After_1.png)
 ![image](./docs/imgs/After_2.png)
 
-This improves the readability and the logic of the browsable API and provides a better user experience. 
+This improves the readability and the logic of the browsable API and provides a better user experience.
 
 And as you can see that will not interfere with other already existing views. **Here, the `ServerConfigViewSet` is still accessible through the `coucou` endpoint and as not been overridden by an intermediary API view.**
 
@@ -201,9 +201,9 @@ Tests automatic conflict resolution when multiple views or viewsets are register
 ## Notes
 
 - Compatibility
-    
+
     The HybridRouter is designed to work seamlessly with Django REST Framework and is compatible with existing DRF features like schema generation.
-	
+
 - Spectacular Support
-    
+
     Will be added in the future.

@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from typing import Optional, Type, Union, overload
 
 from django.urls import include, path, re_path
 from django.urls.exceptions import NoReverseMatch
@@ -50,12 +51,34 @@ class HybridRouter(DefaultRouter):
         node.basename = basename
         node.is_viewset = is_viewset
 
-    def register(self, prefix, view, basename=None):
+    @overload
+    def register(
+        self, prefix: str, viewset: Type[APIView], basename: Optional[str] = None
+    ) -> None:
+        ...
+
+    @overload
+    def register(
+        self, prefix: str, viewset: Type[ViewSetMixin], basename: Optional[str] = None
+    ) -> None:
+        ...
+
+    def register(
+        self,
+        prefix: str,
+        viewset: Union[Type[APIView], Type[ViewSetMixin]],
+        basename: Optional[str] = None,
+    ) -> None:
         """
-        Registers a ViewSet or a view with the specified prefix.
+        Registers an APIView or ViewSet with the specified prefix.
+
+        Args:
+            prefix (str): URL prefix for the view or viewset.
+            viewset (Type[APIView] or Type[ViewSetMixin]): The APIView or ViewSet class.
+            basename (str, optional): The base name for the view or viewset. Defaults to None.
         """
         if basename is None:
-            basename = self.get_default_basename(view)
+            basename = self.get_default_basename(viewset)
         path_parts = prefix.strip("/").split("/")
 
         # Register the information for conflict resolution
@@ -64,7 +87,7 @@ class HybridRouter(DefaultRouter):
         self.basename_registry[basename].append(
             {
                 "prefix": prefix,
-                "view": view,
+                "view": viewset,
                 "basename": basename,
                 "path_parts": path_parts,
             }
@@ -93,8 +116,9 @@ class HybridRouter(DefaultRouter):
                 # Conflict detected
                 prefixes = [reg["prefix"] for reg in registrations]
                 logger.warning(
-                    f"The basename '{basename}' is used for multiple registrations: {', '.join(prefixes)}. "
-                    "Generating unique basenames."
+                    "The basename '%s' is used for multiple registrations: %s. Generating unique basenames.",
+                    basename,
+                    ", ".join(prefixes),
                 )
                 # Assign new unique basenames
                 for idx, reg in enumerate(registrations, start=1):
@@ -182,13 +206,6 @@ class HybridRouter(DefaultRouter):
 
         return urls
 
-    def get_routes(self, viewset):
-        """
-        Return the list of routes for a given viewset.
-        """
-        # We can reuse DRF's get_routes method
-        return super().get_routes(viewset)
-
     def get_method_map(self, viewset, method_map):
         """
         Given a viewset and a mapping {http_method: action},
@@ -201,15 +218,14 @@ class HybridRouter(DefaultRouter):
                 bound_methods[http_method] = action
         return bound_methods
 
-    def get_lookup_regex(self, viewset):
+    def get_lookup_regex(self, viewset, lookup_prefix=""):
         """
         Return the regex pattern for the lookup field.
         """
         lookup_field = getattr(viewset, "lookup_field", "pk")
+        lookup_url_kwarg = getattr(viewset, "lookup_url_kwarg", None) or lookup_field
         lookup_value = getattr(viewset, "lookup_value_regex", "[^/.]+")
-        return "(?P<{lookup_field}>{lookup_value})".format(
-            lookup_field=lookup_field, lookup_value=lookup_value
-        )
+        return f"(?P<{lookup_prefix}{lookup_url_kwarg}>{lookup_value})"
 
     def _get_api_root_view(self, node, prefix):
         api_root_dict = OrderedDict()
