@@ -207,4 +207,4 @@ Tests automatic conflict resolution when multiple views or viewsets are register
 
 - Spectacular Support
 
-    Will be added in the future.
+    Will be added in the future. *After some manual test, it seems that the `spectacular` package is compatible with the `HybridRouter`. But that may need some more testing.*
