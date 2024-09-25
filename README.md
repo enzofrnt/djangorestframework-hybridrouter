@@ -33,6 +33,7 @@ from rest_framework.viewsets import ViewSet
 from django.urls import path, include
 from hybrid_router import HybridRouter
 
+
 class ServerConfigViewSet(ViewSet):
     def list(self, request):
         return Response({'a': 'b'})
