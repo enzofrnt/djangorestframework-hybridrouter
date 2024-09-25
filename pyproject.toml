@@ -1,0 +1,175 @@
+[build-system]
+build-backend = "poetry.core.masonry.api"
+requires = [ "poetry-core" ]
+
+[tool.poetry]
+name = "djangorestframework-hybridrouter"
+version = "1.0.0"
+description = "Django app that provides a hybrid router for Django Rest Framework"
+authors = [ "enzo_frnt" ]
+license = "MIT"
+readme = "README.md"
+keywords = [ "django", "rest", "framework", "router", "hybrid", "views and viewsets" ]
+
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Environment :: Web Environment",
+  "Framework :: Django",
+  "Framework :: Django :: 3.2",
+  "Framework :: Django :: 4.0",
+  "Framework :: Django :: 4.1",
+  "Framework :: Django :: 4.2",
+  "Framework :: Django :: 5.0",
+  "Framework :: Django :: 5.1",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+packages = [
+  { include = "hybridrouter" },
+]
+
+[tool.poetry.urls]
+"Documentation" = "https://github.com/enzofrnt/djangorestframework-hybridrouter/blob/main/README.md"
+"Source Code" = "https://github.com/enzofrnt/djangorestframework-hybridrouter"
+"Issues" = "https://github.com/enzofrnt/djangorestframework-hybridrouter/issues"
+
+[tool.poetry.dependencies]
+python = ">=3.8,<4"
+django = ">=3.2,<5.2"
+djangorestframework = ">=3.12.4,<3.16"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "8.2.0"
+pytest-django = "^4.8.0"
+pytest-cov = "^5.0.0"
+pylint = "^3.2.6"
+pylint-pytest = "^1.1.8"
+mypy = "^1.11.1"
+isort = "^5.13.2"
+black = "^24.4.2"
+pre-commit = "^3.5.0"
+bandit = { extras = [ "toml" ], version = "^1.7.9" }
+tox = "^4.16.0"
+django-stubs = "^5.0.4"
+codecov = "^2.1.13"
+python-semantic-release = "^9.8.8"
+
+[tool.black]
+line-length = 88
+exclude = '''
+/(
+    \.git
+  | \.venv
+  | \.tox
+  | build
+  | dist
+  | migrations
+  | venv
+  | env
+  | __pycache__
+  | node_modules
+  | env
+  | kernel
+  | \.mypy_cache
+  | \.pytest_cache
+  | .*\.egg-info
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 88
+skip = [
+  "venv",
+  ".venv",
+  ".tox",
+  "build",
+  "dist",
+  ".git",
+  "__pycache__",
+  "*.egg-info",
+  ".mypy_cache",
+  ".pytest_cache",
+  "migrations",
+  "node_modules",
+  "env",
+  "kernel",
+]
+
+[tool.pylint]
+disable = [
+  "C0103", # Invalid constant name
+  "C0114", # Missing module docstring
+  "C0115", # Missing class docstring
+  "C0116", # Missing function or method docstring
+  "E1101", # Instance of 'Foo' has no 'bar' member
+  "W0212", # Access to a protected member
+  "C0301", # Line too long
+  "C0411", # Wrong import order
+  "W0611", # Unused imports
+  "W0613", # Unused arguments
+  "W0622", # Redefining built-in names
+  "R0903", # Too few public methods
+  "R0801", # Duplicate code
+  "W0621",
+  "C0415",
+  "R1719", # The if expression can be replaced with 'bool(test)'
+  "R1705", # Unnecessary "elif" after "return"
+  "R0401",
+]
+max-line-length = 88
+ignore = [
+  "tests",
+  "migrations/*",
+  "venv/*",
+  "build/*",
+  "dist/*",
+  ".git/*",
+  ".tox/*",
+  "__pycache__/*",
+  "*.egg-info/*",
+  ".mypy_cache/*",
+  ".pytest_cache/*",
+]
+load-plugins = [
+  "pylint_pytest",
+]
+
+suggestion-mode = true
+const-rgx = "([A-Z_][A-Z0-9_]*)|(__.*__)"
+attr-rgx = "[a-z_][a-z0-9_]{2,30}$"
+variable-rgx = "[a-z_][a-z0-9_]{2,30}$"
+argument-rgx = "[a-z_][a-z0-9_]{2,30}$"
+method-rgx = "[a-z_][a-z0-9_]{2,30}$"
+function-rgx = "[a-z_][a-z0-9_]{2,30}$"
+class-rgx = "[A-Z_][a-zA-Z0-9]+$"
+module-rgx = "(([a-z_][a-z0-9_]*)|(__.*__))$"
+
+[tool.bandit]
+targets = [ "./hybridrouter" ]
+exclude_dirs = [
+  "tests",
+  "migrations",
+]
+severity = "medium"
+confidence = "medium"
+max_lines = 500
+progress = true
+reports = true
+output_format = "screen"
+output_file = "bandit_report.txt"
+include = [ "B101", "B102" ]
+exclude_tests = [ "B301", "B302" ]
+
+[tool.bandit.plugins]
+B104 = { check_typed_list = true }
