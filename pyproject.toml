@@ -44,7 +44,7 @@ packages = [
 "Issues" = "https://github.com/enzofrnt/djangorestframework-hybridrouter/issues"
 
 [tool.poetry.dependencies]
-python = ">=3.8"
+python = ">=3.8,<4"
 django = ">=3.2,<5.2"
 djangorestframework = ">=3.12.4,<3.16"
 
