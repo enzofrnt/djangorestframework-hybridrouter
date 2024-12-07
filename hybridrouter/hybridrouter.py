@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from typing import Optional, Type, Union, overload
+from typing import Callable, Optional, Type, Union, overload
 
 from django.urls import include, path, re_path
 from django.urls.exceptions import NoReverseMatch
@@ -63,18 +63,25 @@ class HybridRouter(DefaultRouter):
     ) -> None:
         ...
 
+    @overload
+    def register(
+        self, prefix: str, viewset: Type[Callable], basename: Optional[str] = None
+    ) -> None:
+        ...
+
     def register(
         self,
         prefix: str,
-        viewset: Union[Type[APIView], Type[ViewSetMixin]],
+        viewset: Union[Type[APIView], Type[ViewSetMixin], Type[Callable]],
         basename: Optional[str] = None,
     ) -> None:
         """
-        Registers an APIView or ViewSet with the specified prefix.
+        Registers an APIView, ViewSet, or @api_view-decorated function with the specified prefix.
 
         Args:
             prefix (str): URL prefix for the view or viewset.
-            viewset (Type[APIView] or Type[ViewSetMixin]): The APIView or ViewSet class.
+            viewset (Type[APIView] or Type[ViewSetMixin] or Type[Callable]):
+                A class (APIView or ViewSet) or function (@api_view-decorated function).
             basename (str, optional): The base name for the view or viewset. Defaults to None.
         """
         if basename is None:
@@ -148,9 +155,13 @@ class HybridRouter(DefaultRouter):
                 viewset_urls = self._get_viewset_urls(node.view, prefix, node.basename)
                 urls.extend(viewset_urls)
             else:
-                # Add the basic view with a unique name
                 name = f"{node.basename}"
-                urls.append(path(f"{prefix}", node.view.as_view(), name=name))
+                # Only APIView has as_view, so try that first
+                try:
+                    urls.append(path(f"{prefix}", node.view.as_view(), name=name))
+                except AttributeError:
+                    # That didn't work, so it must be an @api_view-decorated function.
+                    urls.append(path(f"{prefix}", node.view, name=name))
         # If this node is a nested router, include it
         elif node.is_nested_router:
             urls.append(
