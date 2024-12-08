@@ -225,6 +225,9 @@ def test_no_api_root_view(hybrid_router, db):
         response = APIClient().get("/")
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
+        api_root_view = hybrid_router.get_api_root_view()
+        assert api_root_view is None
+
 
 def test_intermediary_view(hybrid_router, db):
     hybrid_router.include_intermediate_views = True  # Par défaut True
