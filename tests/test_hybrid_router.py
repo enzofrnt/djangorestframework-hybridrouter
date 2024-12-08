@@ -1,4 +1,5 @@
 import types
+from unittest.mock import MagicMock
 
 import pytest
 from django.test import override_settings
@@ -6,12 +7,14 @@ from django.urls import include, path, reverse
 from django.urls.resolvers import get_resolver
 from rest_framework import status
 from rest_framework.routers import DefaultRouter
-from rest_framework.test import APIClient
+from rest_framework.test import APIClient, APIRequestFactory
+
+from hybridrouter import TreeNode
 
 from .conftest import recevoir_test_url_resolver
 from .models import Item
 from .views import ItemView, item_view
-from .viewsets import ItemViewSet, SlugItemViewSet, EmptyViewSet
+from .viewsets import EmptyViewSet, ItemViewSet, SlugItemViewSet
 
 
 def create_urlconf(router):
@@ -616,3 +619,44 @@ def test_get_viewset_urls_with_empty_mapping(hybrid_router, db):
         urls = hybrid_router.get_urls()
 
         assert len(urls) == 0
+
+
+def test_get_api_root_view_with_no_children(hybrid_router):
+    # Créer un TreeNode sans enfants
+    empty_node = TreeNode()
+
+    # Appeler la méthode _get_api_root_view avec ce node
+    result = hybrid_router._get_api_root_view(empty_node, prefix="")
+
+    # Vérifier que la méthode retourne None
+    assert (
+        result is None
+    ), "La méthode _get_api_root_view devrait retourner None lorsqu'il n'y a pas d'enfants"
+
+
+def test_namespace_in_get_api_root_view(hybrid_router):
+    # Création d'un TreeNode avec un enfant
+    root_node = TreeNode()
+    child_node = TreeNode(name="child")
+    child_node.basename = "child-api"
+    root_node.children["child"] = child_node
+
+    # Instancier la vue APIRoot
+    api_root_view = hybrid_router._get_api_root_view(root_node, "")
+
+    # Créer une fausse requête avec un namespace
+    factory = APIRequestFactory()
+    request = factory.get("/")  # Cette requête aura method='GET'
+
+    # Mocker le resolver_match
+    resolver_match = MagicMock()
+    resolver_match.namespace = "testnamespace"
+    request.resolver_match = resolver_match
+
+    # Appeler la méthode get() de APIRoot
+    response = api_root_view(request)
+
+    # Vérifier le contenu de la réponse
+    expected_data = {"child": "http://testserver/child/"}
+    assert response.status_code == 200
+    assert response.data == expected_data

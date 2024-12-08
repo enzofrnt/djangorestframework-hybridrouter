@@ -92,7 +92,7 @@ def pytest_configure():
             "django.contrib.messages",
             "django.contrib.staticfiles",
             "rest_framework",
-            "hybridrouter.tests",
+            "tests",
         ],
         REST_FRAMEWORK={
             "DEFAULT_RENDERER_CLASSES": ("rest_framework.renderers.JSONRenderer",),
@@ -110,6 +110,6 @@ def pytest_configure():
 
 @pytest.fixture
 def hybrid_router():
-    from hybridrouter.hybridrouter import HybridRouter
+    from hybridrouter import HybridRouter
 
     return HybridRouter()
