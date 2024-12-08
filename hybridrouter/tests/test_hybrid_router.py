@@ -11,7 +11,7 @@ from rest_framework.test import APIClient
 from .conftest import recevoir_test_url_resolver
 from .models import Item
 from .views import ItemView, item_view
-from .viewsets import ItemViewSet, SlugItemViewSet
+from .viewsets import ItemViewSet, SlugItemViewSet, EmptyViewSet
 
 
 def create_urlconf(router):
@@ -602,3 +602,17 @@ def test_no_intermediate_view_with_nested_router(hybrid_router, db):
         # Les URLs du routeur imbriqué devraient être accessibles
         response = APIClient().get("/items/subitems/")
         assert response.status_code == status.HTTP_200_OK
+
+
+def test_get_viewset_urls_with_empty_mapping(hybrid_router, db):
+    hybrid_router.register("empty", EmptyViewSet, basename="empty")
+
+    urlconf = create_urlconf(hybrid_router)
+
+    with override_settings(ROOT_URLCONF=urlconf):
+        resolver = get_resolver(urlconf)
+        recevoir_test_url_resolver(resolver.url_patterns)
+
+        urls = hybrid_router.get_urls()
+
+        assert len(urls) == 0

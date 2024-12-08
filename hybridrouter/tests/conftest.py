@@ -34,7 +34,11 @@ def pytest_exception_interact(node, call, report):
                 return
 
         urls_list = list_urls(all_urls, prefix="http://localhost/")
-        urls_text = "\n".join(urls_list)
+
+        if urls_list and isinstance(urls_list, list):
+            urls_text = "\n".join(urls_list)
+        else:
+            urls_text = "Aucune URL disponible."
 
         if hasattr(report, "longrepr"):
             report.longrepr = f"{report.longrepr}\n\nAvailable URLs:\n{urls_text}"
