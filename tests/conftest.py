@@ -48,6 +48,7 @@ def pytest_configure():
     from django.conf import settings
 
     default_settings = dict(
+        ALLOWED_HOSTS=["*"],
         DEBUG_PROPAGATE_EXCEPTIONS=True,
         DATABASES={
             "default": {
