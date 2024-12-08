@@ -10,7 +10,7 @@ from rest_framework.test import APIClient
 
 from .conftest import recevoir_test_url_resolver
 from .models import Item
-from .views import ItemView
+from .views import ItemView, item_view
 from .viewsets import ItemViewSet, SlugItemViewSet
 
 
@@ -26,6 +26,7 @@ def create_urlconf(router):
 def test_register_views_and_viewsets(hybrid_router, db):
     # Enregistrer des vues simples
     hybrid_router.register("items-view", ItemView, basename="item-view")
+    hybrid_router.register("apiitems-view", item_view, basename="apiitem-view")
 
     # Enregistrer des ViewSets
     hybrid_router.register("items-set", ItemViewSet, basename="item-set")
@@ -40,10 +41,12 @@ def test_register_views_and_viewsets(hybrid_router, db):
 
         # Vérifier que les URL sont correctement générées
         view_url = reverse("item-view")
+        api_view_url = reverse("apiitem-view")
         list_url = reverse("item-set-list")
         detail_url = reverse("item-set-detail", kwargs={"pk": 1})
 
         assert view_url == "/items-view/"
+        assert api_view_url == "/apiitems-view/"
         assert list_url == "/items-set/"
         assert detail_url == "/items-set/1/"
 
@@ -52,12 +55,36 @@ def test_register_views_and_viewsets(hybrid_router, db):
         response = client.get(view_url)
         assert response.status_code == status.HTTP_200_OK
 
+        response = client.get(api_view_url)
+        assert response.status_code == status.HTTP_200_OK
+
         Item.objects.create(id=1, name="Test Item", description="Item for testing.")
 
         response = client.get(list_url)
         assert response.status_code == status.HTTP_200_OK
 
         response = client.get(detail_url)
+        assert response.status_code == status.HTTP_200_OK
+
+
+@override_settings()
+def test_register_only_api_views(hybrid_router, db):
+    # Enregistrer uniquement des vues simples
+    hybrid_router.register("simple-view", item_view, basename="simple-view")
+
+    urlconf = create_urlconf(hybrid_router)
+
+    with override_settings(ROOT_URLCONF=urlconf):
+        resolver = get_resolver(urlconf)
+        recevoir_test_url_resolver(resolver.url_patterns)
+
+        # Vérifier que l'URL est correctement générée
+        view_url = reverse("simple-view")
+        assert view_url == "/simple-view/"
+
+        # Vérifier que la vue fonctionne correctement
+        client = APIClient()
+        response = client.get(view_url)
         assert response.status_code == status.HTTP_200_OK
 
 
