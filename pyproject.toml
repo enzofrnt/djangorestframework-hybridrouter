@@ -4,7 +4,7 @@ requires = [ "poetry-core" ]
 
 [tool.poetry]
 name = "djangorestframework-hybridrouter"
-version = "1.0.0"
+version = "1.0.1"
 description = "Django app that provides a hybrid router for Django Rest Framework"
 authors = [ "enzo_frnt" ]
 license = "MIT"
