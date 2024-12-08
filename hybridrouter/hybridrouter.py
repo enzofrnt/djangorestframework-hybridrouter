@@ -55,19 +55,19 @@ class HybridRouter(DefaultRouter):
     def register(
         self, prefix: str, viewset: Type[APIView], basename: Optional[str] = None
     ) -> None:
-        ...
+        ...  # pragma: no cover
 
     @overload
     def register(
         self, prefix: str, viewset: Type[ViewSetMixin], basename: Optional[str] = None
     ) -> None:
-        ...
+        ...  # pragma: no cover
 
     @overload
     def register(
         self, prefix: str, viewset: Type[Callable], basename: Optional[str] = None
     ) -> None:
-        ...
+        ...  # pragma: no cover
 
     def register(
         self,
