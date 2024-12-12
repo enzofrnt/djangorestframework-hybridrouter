@@ -31,7 +31,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet
 from django.urls import path, include
-from hybrid_router import HybridRouter
+from hybridrouter import HybridRouter
 
 
 class ServerConfigViewSet(ViewSet):
